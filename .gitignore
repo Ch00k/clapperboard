@@ -1,0 +1,3 @@
+*.pyc
+clapperboard.db
+tasks.py
