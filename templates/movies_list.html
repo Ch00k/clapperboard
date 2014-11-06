@@ -18,6 +18,7 @@
         <th>IMDB page url</th>
         <th>Show start date</th>
         <th>Show end date</th>
+        <th>Show times</th>
     </tr>
 {% for movie in movies %}
     <tr>
@@ -55,6 +56,11 @@
             {% else %}
                 N/A
             {% endif %}
+        </td>
+        <td>
+            {% for show_time in movie.show_times %}
+                <a href="{{ show_time.order_url }}">{{ show_time.date }} {{ show_time.time }}</a> |
+            {% endfor %}
         </td>
     </tr>
 {% endfor %}

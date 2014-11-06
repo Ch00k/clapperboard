@@ -20,7 +20,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 _cwd = dirname(abspath(__file__))
 
 DEBUG = True
-SQLALCHEMY_DATABASE_URI = 'sqlite:///' + join(_cwd, 'clapperboard.db')
+SQLALCHEMY_DATABASE_URI = 'mysql://root@localhost/clapperboard'
 
 
 app = Flask(__name__)
@@ -31,12 +31,12 @@ sched = BackgroundScheduler()
 
 
 class PKMovie(db.Model):
-    id = db.Column(db.String, primary_key=True)
-    url = db.Column(db.String)
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.String(255))
     show_start = db.Column(db.Date)
     show_end = db.Column(db.Date)
-    show_times = db.relationship('ShowTime', backref='pk_movie')
-    imdb = db.relationship('IMDBMovie', backref='pk_movie', uselist=False)
+    imdb = db.relationship('IMDBMovie', uselist=False)
+    show_times = db.relationship('ShowTime')
 
     def __init__(self, id, url, show_start, show_end):
         self.id = id
@@ -49,28 +49,28 @@ class PKMovie(db.Model):
 
 
 class IMDBMovie(db.Model):
-    id = db.Column(db.String, primary_key=True)
-    title = db.Column(db.String)
-    rating = db.Column(db.String)
-    pk_id = db.Column(db.Integer, db.ForeignKey('pk_movie.id'))
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255))
+    rating = db.Column(db.Float)
+    pk_movie_id = db.Column(db.Integer, db.ForeignKey('pk_movie.id'))
 
-    def __init__(self, id, title, rating, pk_id):
+    def __init__(self, id, title, rating, pk_movie_id):
         self.id = id
         self.title = title
         self.rating = rating
-        self.pk_id = pk_id
+        self.pk_movie_id = pk_movie_id
 
     def __repr__(self):
         return '<IMDBMovie %r, %r>' % (self.id, self.title)
 
 
 class ShowTime(db.Model):
-    id = db.Column(db.String, primary_key=True)
-    date = db.Column(db.DateTime)
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date)
     time = db.Column(db.Time)
-    hall_id = db.Column(db.String)
-    technology = db.Column(db.String)
-    order_url = db.Column(db.String)
+    hall_id = db.Column(db.Integer)
+    technology = db.Column(db.String(8))
+    order_url = db.Column(db.String(255))
     pk_movie_id = db.Column(db.Integer, db.ForeignKey('pk_movie.id'))
 
     def __init__(self, date, time, hall_id, technology, order_url, pk_movie_id):
@@ -123,14 +123,25 @@ def normalize_title(title):
     return normalized_title
 
 
-def show_date_to_datetime(str):
+def string_to_datetime(str, type='date', remove_time=False):
     """
     Convert date string representation to datetime object
 
     :param str: Date string format
+    :param type: What type does the string represent. 'date' and 'time' are accepted
+    :param remove_time: Remove time from datetime object (leave date only)
     :return: Datetime object
     """
-    return datetime.datetime.strptime(str, '%Y-%m-%d').date() if str else None
+    if type == 'date':
+        if remove_time:
+            dt = datetime.datetime.strptime(str, '%Y-%m-%d %H:%M:%S').date() if str \
+                else None
+        else:
+            dt = datetime.datetime.strptime(str, '%Y-%m-%d').date() if str else None
+    elif type == 'time':
+        dt = datetime.datetime.strptime(str, '%H:%M').time() if str else None
+
+    return dt
 
 
 def update_movie_imdb_data(movie):
@@ -154,6 +165,29 @@ def get_current_movies(show_start_within_days=14):
         .order_by(IMDBMovie.rating.desc()).all()
 
 
+def get_showtimes_for_movie(showtimes_struct, movie_id):
+    """
+    Get list of showtimes for a specific PK movie.
+
+    :param showtimes_struct: Dictionary with showtimes data
+    :param movie_id: PK movie id
+    :return: List of showtime objects
+    """
+    movie_show_times = []
+    for show_time in showtimes_struct:
+        for show in show_time['show']:
+            if show['@movie-id'] == movie_id:
+                if show['@order-url']:
+                    show_time_date = string_to_datetime(show['@full-date'],
+                                                        remove_time=True)
+                    show_time_time = string_to_datetime(show['@time'],
+                                                        type='time')
+                    movie_show_times.append((show_time_date, show_time_time,
+                                             show['@hall-id'], show['@technology'],
+                                             show['@order-url'], movie_id))
+    return movie_show_times
+
+
 def write_pk_movie_data(db):
     """
     Create new of update existing movie record in database.
@@ -161,10 +195,11 @@ def write_pk_movie_data(db):
     :return:
     """
     data = get_pk_data('lvov')
+    show_times = data['showtimes']['day']
 
     for movie in data['movies']['movie']:
-        dt_start = show_date_to_datetime(movie['dt-start'])
-        dt_end = show_date_to_datetime(movie['dt-end'])
+        dt_start = string_to_datetime(movie['dt-start'])
+        dt_end = string_to_datetime(movie['dt-end'])
 
         # See if the record with that id already exists
         record = PKMovie.query.filter_by(id=movie['@id']).first()
@@ -186,10 +221,27 @@ def write_pk_movie_data(db):
                 # If not get movie data from IMDB
                 pk_title = extract_title_from_pk_url(record.url)
                 imdb_movie = get_imdb_movie_data(pk_title=pk_title)
+            if record.show_times:
+                # TODO: Update showtimes in db if they changed in XML
+                pass
+            else:
+                # If no show times for a movie found add them
+                movie_show_times = get_showtimes_for_movie(show_times, record.id)
+                for show_time in movie_show_times:
+                    show_time_record = ShowTime(*show_time)
+                    db.session.add(show_time_record)
         else:
             # If the record was not found create a new one
             pk_movie_record = PKMovie(movie['@id'], movie['@url'], dt_start, dt_end)
             db.session.add(pk_movie_record)
+
+            # Set show times for the movie
+            movie_show_times = get_showtimes_for_movie(show_times, movie['@id'])
+            for show_time in movie_show_times:
+                show_time_record = ShowTime(*show_time)
+                db.session.add(show_time_record)
+
+            # Set IMDB data for the movie
             pk_title = extract_title_from_pk_url(movie['@url'])
             imdb_movie = get_imdb_movie_data(pk_title=pk_title)
         if imdb_movie:
@@ -274,14 +326,15 @@ def show_movies():
     return render_template('movies_list.html', movies=movies)
 
 
-# Add two jobs: one for immediate fetching of data (on start)
-# and another one hourly
-sched.add_job(write_pk_movie_data, args=(db,))
-sched.add_job(write_pk_movie_data, args=(db,), trigger='cron', hour=1)
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     db.create_all()
+
+    # Add two jobs: one for immediate fetching of data (on start)
+    # and another one hourly
+    sched.add_job(write_pk_movie_data, args=(db,))
+    sched.add_job(write_pk_movie_data, args=(db,), trigger='cron', hour=1)
+
     sched.start()
+
     # Disable reloader due to this issue http://stackoverflow.com/a/15491587/695332
     app.run(use_reloader=False)
