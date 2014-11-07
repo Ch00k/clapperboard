@@ -59,7 +59,7 @@
         </td>
         <td>
             {% for show_time in movie.show_times %}
-                <a href="{{ show_time.order_url }}">{{ show_time.date }} {{ show_time.time }}</a> |
+                <a href="{{ show_time.order_url }}">{{ show_time.datetime }}</a> |
             {% endfor %}
         </td>
     </tr>

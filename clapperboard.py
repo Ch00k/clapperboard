@@ -66,23 +66,22 @@ class IMDBMovie(db.Model):
 
 class ShowTime(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Date)
-    time = db.Column(db.Time)
+    datetime = db.Column(db.DateTime)
     hall_id = db.Column(db.Integer)
     technology = db.Column(db.String(8))
     order_url = db.Column(db.String(255))
     pk_movie_id = db.Column(db.Integer, db.ForeignKey('pk_movie.id'))
 
-    def __init__(self, date, time, hall_id, technology, order_url, pk_movie_id):
-        self.date = date
-        self.time = time
+    def __init__(self, id, datetime, hall_id, technology, order_url, pk_movie_id):
+        self.id = id
+        self.datetime = datetime
         self.hall_id = hall_id
         self.technology = technology
         self.order_url = order_url
         self.pk_movie_id = pk_movie_id
 
     def __repr__(self):
-        return '<ShowTime %r %r>' % (self.date, self.pk_movie_id)
+        return '<ShowTime %r, %r>' % (self.id, self.datetime)
 
 
 def get_pk_data(city):
@@ -123,25 +122,21 @@ def normalize_title(title):
     return normalized_title
 
 
-def string_to_datetime(str, type='date', remove_time=False):
+def string_to_datetime(str):
     """
     Convert date string representation to datetime object
 
     :param str: Date string format
-    :param type: What type does the string represent. 'date' and 'time' are accepted
-    :param remove_time: Remove time from datetime object (leave date only)
     :return: Datetime object
     """
-    if type == 'date':
-        if remove_time:
-            dt = datetime.datetime.strptime(str, '%Y-%m-%d %H:%M:%S').date() if str \
-                else None
+    if str:
+        # A dull check whether the string contains time
+        if ':' in str:
+            return datetime.datetime.strptime(str, '%Y-%m-%d %H:%M:%S')
         else:
-            dt = datetime.datetime.strptime(str, '%Y-%m-%d').date() if str else None
-    elif type == 'time':
-        dt = datetime.datetime.strptime(str, '%H:%M').time() if str else None
-
-    return dt
+            return datetime.datetime.strptime(str, '%Y-%m-%d').date()
+    else:
+        return None
 
 
 def update_movie_imdb_data(movie):
@@ -173,16 +168,17 @@ def get_showtimes_for_movie(showtimes_struct, movie_id):
     :param movie_id: PK movie id
     :return: List of showtime objects
     """
+    order_url_pattern = \
+        '^https:\/\/cabinet.planeta-kino.com.ua\/hall\/\?show_id=(\d+)&.*$'
     movie_show_times = []
     for show_time in showtimes_struct:
         for show in show_time['show']:
             if show['@movie-id'] == movie_id:
                 if show['@order-url']:
-                    show_time_date = string_to_datetime(show['@full-date'],
-                                                        remove_time=True)
-                    show_time_time = string_to_datetime(show['@time'],
-                                                        type='time')
-                    movie_show_times.append((show_time_date, show_time_time,
+                    show_time_id = \
+                        re.match(order_url_pattern, show['@order-url']).group(1)
+                    show_time_datetime = string_to_datetime(show['@full-date'])
+                    movie_show_times.append((show_time_id, show_time_datetime,
                                              show['@hall-id'], show['@technology'],
                                              show['@order-url'], movie_id))
     return movie_show_times
@@ -221,12 +217,20 @@ def write_pk_movie_data(db):
                 # If not get movie data from IMDB
                 pk_title = extract_title_from_pk_url(record.url)
                 imdb_movie = get_imdb_movie_data(pk_title=pk_title)
+
+            movie_show_times = get_showtimes_for_movie(show_times, record.id)
+
             if record.show_times:
-                # TODO: Update showtimes in db if they changed in XML
-                pass
+                # If the movie record already has show times associated
+                # add only those that are not there yet
+                for show_time in movie_show_times:
+                    # TODO: There must be an easier way to do this
+                    for record_show_time in record.show_times:
+                        if show_time(0) != record_show_time.datetime:
+                            show_time_record = ShowTime(*show_time)
+                            db.session.add(show_time_record)
             else:
                 # If no show times for a movie found add them
-                movie_show_times = get_showtimes_for_movie(show_times, record.id)
                 for show_time in movie_show_times:
                     show_time_record = ShowTime(*show_time)
                     db.session.add(show_time_record)
