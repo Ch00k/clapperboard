@@ -38,6 +38,17 @@ class PKMovie(db.Model):
     imdb = db.relationship('IMDBMovie', uselist=False)
     show_times = db.relationship('ShowTime')
 
+    future_show_times = \
+        db.relationship('ShowTime',
+                        primaryjoin=lambda: db.and_(
+                            PKMovie.id == ShowTime.pk_movie_id,
+                            ShowTime.datetime >= (datetime.datetime.now() +
+                                                  datetime.timedelta(hours=1))
+                        ),
+                        order_by='ShowTime.datetime',
+                        lazy='joined'
+        )
+
     def __init__(self, id, url, show_start, show_end):
         self.id = id
         self.url = url

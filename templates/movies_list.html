@@ -58,7 +58,7 @@
             {% endif %}
         </td>
         <td>
-            {% for show_time in movie.show_times %}
+            {% for show_time in movie.future_show_times %}
                 <a href="{{ show_time.order_url }}">{{ show_time.datetime }}</a> |
             {% endfor %}
         </td>
