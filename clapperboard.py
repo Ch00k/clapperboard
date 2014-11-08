@@ -1,3 +1,4 @@
+import copy
 import datetime
 import logging
 import re
@@ -7,12 +8,13 @@ import urllib2
 import imdb
 import xmltodict
 
-from os.path import abspath, dirname, join
+from os.path import abspath, dirname
 
 from sqlalchemy import or_
 
-from flask import Flask, render_template
+from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask.ext.restful import Api, Resource, fields, marshal, abort, reqparse
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -24,46 +26,38 @@ SQLALCHEMY_DATABASE_URI = 'mysql://root@localhost/clapperboard'
 
 
 app = Flask(__name__)
+api = Api(app)
 app.config.from_object(__name__)
 db = SQLAlchemy(app)
 logging.basicConfig()
 sched = BackgroundScheduler()
 
 
-class PKMovie(db.Model):
+class Movie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255))
+    show_start = db.Column(db.DateTime)
+    show_end = db.Column(db.DateTime)
     url = db.Column(db.String(255))
-    show_start = db.Column(db.Date)
-    show_end = db.Column(db.Date)
-    imdb = db.relationship('IMDBMovie', uselist=False)
+    imdb_data = db.relationship('IMDBData', uselist=False)
     show_times = db.relationship('ShowTime')
 
-    future_show_times = \
-        db.relationship('ShowTime',
-                        primaryjoin=lambda: db.and_(
-                            PKMovie.id == ShowTime.pk_movie_id,
-                            ShowTime.datetime >= (datetime.datetime.now() +
-                                                  datetime.timedelta(hours=1))
-                        ),
-                        order_by='ShowTime.datetime',
-                        lazy='joined'
-        )
-
-    def __init__(self, id, url, show_start, show_end):
+    def __init__(self, id, title, show_start, show_end, url):
         self.id = id
-        self.url = url
+        self.title = title
         self.show_start = show_start
         self.show_end = show_end
+        self.url = url
 
     def __repr__(self):
-        return '<PKMovie %r, %r>' % (self.id, self.url)
+        return '<PKMovie %r, %r>' % (self.id, self.title)
 
 
-class IMDBMovie(db.Model):
+class IMDBData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255))
     rating = db.Column(db.Float)
-    pk_movie_id = db.Column(db.Integer, db.ForeignKey('pk_movie.id'))
+    pk_movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
 
     def __init__(self, id, title, rating, pk_movie_id):
         self.id = id
@@ -81,18 +75,114 @@ class ShowTime(db.Model):
     hall_id = db.Column(db.Integer)
     technology = db.Column(db.String(8))
     order_url = db.Column(db.String(255))
-    pk_movie_id = db.Column(db.Integer, db.ForeignKey('pk_movie.id'))
+    movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
 
-    def __init__(self, id, datetime, hall_id, technology, order_url, pk_movie_id):
+    def __init__(self, id, datetime, hall_id, technology, order_url, movie_id):
         self.id = id
         self.datetime = datetime
         self.hall_id = hall_id
         self.technology = technology
         self.order_url = order_url
-        self.pk_movie_id = pk_movie_id
+        self.movie_id = movie_id
 
     def __repr__(self):
         return '<ShowTime %r, %r>' % (self.id, self.datetime)
+
+
+imdb_data_fields = {
+    'id': fields.Integer,
+    'title': fields.String,
+    'rating': fields.Float,
+}
+
+
+show_time_fields = {
+    'id': fields.Integer,
+    'datetime': fields.DateTime,
+    'hall_id': fields.Integer,
+    'technology': fields.String,
+    'order_url': fields.String
+}
+
+
+movie_fields = {
+    'id': fields.Integer,
+    'title': fields.String,
+    'show_start': fields.DateTime,
+    'show_end': fields.DateTime,
+    'url': fields.String,
+}
+
+
+class MovieListAPI(Resource):
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('imdb_data', type=str)
+        self.parser.add_argument('showtimes', type=str)
+        super(MovieListAPI, self).__init__()
+
+    def get(self):
+        args = self.parser.parse_args()
+        m_fields = copy.copy(movie_fields)
+
+        if args['imdb_data']:
+            m_fields['imdb_data'] = fields.Nested(imdb_data_fields)
+        if args['showtimes']:
+            m_fields['show_times'] = fields.Nested(show_time_fields)
+
+        return {'movies': marshal(get_current_movies(), m_fields)}
+
+
+class MovieAPI(Resource):
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('imdb_data', type=str)
+        self.parser.add_argument('showtimes', type=str)
+        super(MovieAPI, self).__init__()
+
+    def get(self, movie_id):
+        movie = Movie.query.filter_by(id=movie_id).first()
+
+        if not movie:
+            abort(404, message='Movie {} not found'.format(movie_id))
+
+        args = self.parser.parse_args()
+        m_fields = copy.copy(movie_fields)
+
+        if args['imdb_data']:
+            m_fields['imdb_data'] = fields.Nested(imdb_data_fields)
+        if args['showtimes']:
+            m_fields['show_times'] = fields.Nested(show_time_fields)
+
+        return {'movie': marshal(movie, m_fields)}
+
+
+# class MovieIMDBDataAPI(Resource):
+#     def get(self, movie_id):
+#         movie = Movie.query.filter_by(id=movie_id).first()
+#         if not movie:
+#             abort(404, message='Movie {} not found'.format(movie_id))
+#         imdb_data = movie.imdb_data
+#         if imdb_data:
+#             resp = {'imdb_data': marshal(imdb_data, imdb_data_fields)}
+#         else:
+#             resp = {'imdb_data': {}}
+#
+#         return resp
+#
+#
+# class MovieShowTimesAPI(Resource):
+#     def get(self, movie_id):
+#         movie = Movie.query.filter_by(id=movie_id).first()
+#         if not movie:
+#             abort(404, message='Movie {} not found'.format(movie_id))
+#         showtime_data = movie.show_times
+#         if showtime_data:
+#             resp = {'showtimes': marshal(showtime_data, show_time_fields)}
+#         else:
+#             resp = {'showtimes': []}
+#
+#         return resp
 
 
 def get_pk_data(city):
@@ -150,10 +240,6 @@ def string_to_datetime(str):
         return None
 
 
-def update_movie_imdb_data(movie):
-    pass
-
-
 def get_current_movies(show_start_within_days=14):
     """
     Get list of PK movies that are currently being shown or will start to be shown
@@ -165,13 +251,15 @@ def get_current_movies(show_start_within_days=14):
     """
     today = datetime.date.today()
     show_start_last_day = today + datetime.timedelta(show_start_within_days)
-    return PKMovie.query.outerjoin(IMDBMovie).filter(PKMovie.show_start != None) \
-        .filter(PKMovie.show_start <= show_start_last_day) \
-        .filter(or_(PKMovie.show_end == None, PKMovie.show_end >= today)) \
-        .order_by(IMDBMovie.rating.desc()).all()
+
+    movies_list = Movie.query.filter(Movie.show_start != None) \
+        .filter(Movie.show_start <= show_start_last_day) \
+        .filter(or_(Movie.show_end == None, Movie.show_end >= today)).all()
+
+    return movies_list
 
 
-def get_showtimes_for_movie(showtimes_struct, movie_id):
+def get_movie_showtimes_data(showtimes_struct, movie_id):
     """
     Get list of showtimes for a specific PK movie.
 
@@ -195,9 +283,9 @@ def get_showtimes_for_movie(showtimes_struct, movie_id):
     return movie_show_times
 
 
-def write_pk_movie_data(db):
+def write_movie_data(db):
     """
-    Create new of update existing movie record in database.
+    Create new or update existing movie record in database.
 
     :return:
     """
@@ -209,67 +297,64 @@ def write_pk_movie_data(db):
         dt_end = string_to_datetime(movie['dt-end'])
 
         # See if the record with that id already exists
-        record = PKMovie.query.filter_by(id=movie['@id']).first()
+        record = Movie.query.filter_by(id=movie['@id']).first()
 
         if record:
-            # If it does update its show start and end dates
+            # Update show start and end dates
             if record.show_start != dt_start:
                 record.show_start = dt_start
             if record.show_end != dt_end:
                 record.show_end = dt_end
+
             # See if it has IMDB data associated
-            if record.imdb:
+            if record.imdb_data:
                 # If it does update its rating
-                imdb_movie = get_imdb_movie_data(imdb_id=record.imdb.id)
-                if record.imdb.rating != imdb_movie.get('rating'):
-                    record.imdb.rating = imdb_movie.get('rating')
-                continue
+                movie_imdb_data = get_movie_imdb_data(id=record.imdb_data.id)
+                if record.imdb_data.rating != movie_imdb_data[2]:
+                    record.imdb_data.rating = movie_imdb_data[2]
             else:
                 # If not get movie data from IMDB
                 pk_title = extract_title_from_pk_url(record.url)
-                imdb_movie = get_imdb_movie_data(pk_title=pk_title)
+                movie_imdb_data = get_movie_imdb_data(title=pk_title)
+                if movie_imdb_data:
+                    record.imdb_data = IMDBData(*movie_imdb_data + (record.id,))
 
-            movie_show_times = get_showtimes_for_movie(show_times, record.id)
+            movie_showtimes_data = get_movie_showtimes_data(show_times, record.id)
 
+            # See if it has showtimes data associated
             if record.show_times:
                 # If the movie record already has show times associated
                 # add only those that are not there yet
-                for show_time in movie_show_times:
+                for show_time in movie_showtimes_data:
                     # TODO: There must be an easier way to do this
                     for record_show_time in record.show_times:
-                        if show_time(0) != record_show_time.datetime:
-                            show_time_record = ShowTime(*show_time)
-                            db.session.add(show_time_record)
+                        if show_time(0) != record_show_time.id:
+                            record.show_times.append(ShowTime(*show_time))
             else:
                 # If no show times for a movie found add them
-                for show_time in movie_show_times:
-                    show_time_record = ShowTime(*show_time)
-                    db.session.add(show_time_record)
+                record.show_times = \
+                    [ShowTime(*show_time) for show_time in movie_showtimes_data]
         else:
-            # If the record was not found create a new one
-            pk_movie_record = PKMovie(movie['@id'], movie['@url'], dt_start, dt_end)
-            db.session.add(pk_movie_record)
-
-            # Set show times for the movie
-            movie_show_times = get_showtimes_for_movie(show_times, movie['@id'])
-            for show_time in movie_show_times:
-                show_time_record = ShowTime(*show_time)
-                db.session.add(show_time_record)
-
             # Set IMDB data for the movie
             pk_title = extract_title_from_pk_url(movie['@url'])
-            imdb_movie = get_imdb_movie_data(pk_title=pk_title)
-        if imdb_movie:
-            imdb_movie_record = IMDBMovie(imdb_movie.getID(),
-                                          imdb_movie.get('title'),
-                                          imdb_movie.get('rating'),
-                                          movie['@id'])
-            db.session.add(imdb_movie_record)
+            movie_imdb_data = get_movie_imdb_data(title=pk_title)
+
+            if movie_imdb_data:
+                pk_movie_record = Movie(movie['@id'], movie_imdb_data[1],
+                                        dt_start, dt_end, movie['@url'])
+                pk_movie_record.imdb_data = IMDBData(*movie_imdb_data + (movie['@id'],))
+            else:
+                pk_movie_record = Movie(movie['@id'], pk_title.title(),
+                                        dt_start, dt_end, movie['@url'])
+
+            # Set show times for the movie
+            movie_showtimes_data = get_movie_showtimes_data(show_times, movie['@id'])
+            pk_movie_record.show_times = \
+                [ShowTime(*show_time) for show_time in movie_showtimes_data]
+
+            db.session.add(pk_movie_record)
+
         db.session.commit()
-
-
-def fetch_pk_showtime_data():
-    pass
 
 
 def titles_match(pk_title, imdb_title):
@@ -290,17 +375,17 @@ def titles_match(pk_title, imdb_title):
             (pk_title.replace('and', '') == imdb_title))
 
 
-def get_imdb_movie_data(**kwargs):
+def get_movie_imdb_data(**kwargs):
     """
-    Retrieve IMDB info about a movie either by its PK title or by IMDB id
+    Retrieve IMDB info about a movie either by its PK title or by IMDB id.
 
-    :param kwargs: Either pk_title or imdb_id
-    :return: IMDB movie object if found, None otherwise
+    :param kwargs: Either title or IMDB id
+    :return: Tuple with IMDB movie data, None otherwise
     """
     imdb_cl = imdb.IMDb()
-    if 'pk_title' in kwargs:
-        normalized_pk_title = normalize_title(kwargs['pk_title'])
-        imdb_movies = imdb_cl.search_movie(kwargs['pk_title'])
+    if 'title' in kwargs:
+        normalized_title = normalize_title(kwargs['title'])
+        imdb_movies = imdb_cl.search_movie(kwargs['title'])
 
         for imdb_movie in imdb_movies:
             # Only take into account the movies whose release year
@@ -311,34 +396,36 @@ def get_imdb_movie_data(**kwargs):
                 imdb_cl.update(imdb_movie)
 
                 # Compose all known movie titles into a list
-                titles = [imdb_movie['title']]
+                titles = [imdb_movie.get('title')]
                 if imdb_movie.get('akas'):
                     akas = [aka.split('::')[0] for aka in imdb_movie['akas']]
                     titles += akas
                 if imdb_movie.get('akas from release info'):
                     akas_from_release_info = [aka.split('::')[1] for aka
-                                              in
-                                              imdb_movie['akas from release info']]
+                                              in imdb_movie['akas from release info']]
                     titles += akas_from_release_info
 
                 # Traverse the titles list and see if anything matches the pk_title
                 for title in titles:
                     normalized_imdb_title = normalize_title(title)
                     # Return IMDB movie object if there is a title match
-                    if titles_match(normalized_pk_title, normalized_imdb_title):
-                        return imdb_movie
+                    if titles_match(normalized_title, normalized_imdb_title):
+                        return (imdb_movie.getID(), imdb_movie.get('title'),
+                                imdb_movie.get('rating'))
                 else:
                     # Return None if there was no title match
                     return None
-    elif 'imdb_id' in kwargs:
+    elif 'id' in kwargs:
         # Find IMDB movie by id
-        return imdb_cl.get_movie(kwargs['imdb_id'])
+        imdb_movie = imdb_cl.get_movie(kwargs['id'])
+        return (imdb_movie.getID(), imdb_movie.get('title'),
+                imdb_movie.get('rating'))
 
 
-@app.route("/")
-def show_movies():
-    movies = get_current_movies()
-    return render_template('movies_list.html', movies=movies)
+api.add_resource(MovieListAPI, '/movies')
+api.add_resource(MovieAPI, '/movies/<int:movie_id>')
+# api.add_resource(MovieIMDBDataAPI, '/movies/<int:movie_id>/imdb-data')
+# api.add_resource(MovieShowTimesAPI, '/movies/<int:movie_id>/showtimes')
 
 
 if __name__ == '__main__':
@@ -346,8 +433,8 @@ if __name__ == '__main__':
 
     # Add two jobs: one for immediate fetching of data (on start)
     # and another one hourly
-    sched.add_job(write_pk_movie_data, args=(db,))
-    sched.add_job(write_pk_movie_data, args=(db,), trigger='cron', hour=1)
+    sched.add_job(write_movie_data, args=(db,))
+    sched.add_job(write_movie_data, args=(db,), trigger='cron', hour=1)
 
     sched.start()
 

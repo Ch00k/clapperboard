@@ -1,4 +1,5 @@
 flask
+flask-restful
 flask-sqlalchemy
 xmltodict
 apscheduler
