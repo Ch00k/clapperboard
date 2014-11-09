@@ -1,6 +1,7 @@
 flask
 flask-restful
 flask-sqlalchemy
+MySQL-python
 xmltodict
 apscheduler
 IMDbPY

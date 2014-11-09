@@ -1,14 +1,13 @@
 import copy
 import datetime
-import logging
+import logging as log
 import re
+import time
 import unicodedata
 import urllib2
 
 import imdb
 import xmltodict
-
-from os.path import abspath, dirname
 
 from sqlalchemy import or_
 
@@ -19,17 +18,15 @@ from flask.ext.restful import Api, Resource, fields, marshal, abort, reqparse
 from apscheduler.schedulers.background import BackgroundScheduler
 
 
-_cwd = dirname(abspath(__file__))
-
-DEBUG = True
-SQLALCHEMY_DATABASE_URI = 'mysql://root@localhost/clapperboard'
+SQLALCHEMY_DATABASE_URI = \
+    'mysql://clap_user:clap_user_pw@localhost/clap_db?unix_socket=/tmp/mysql.sock'
 
 
 app = Flask(__name__)
 api = Api(app)
 app.config.from_object(__name__)
 db = SQLAlchemy(app)
-logging.basicConfig()
+log.basicConfig(format='[%(asctime)s]: %(levelname)s: %(message)s', level=log.INFO)
 sched = BackgroundScheduler()
 
 
@@ -235,7 +232,7 @@ def string_to_datetime(str):
         if ':' in str:
             return datetime.datetime.strptime(str, '%Y-%m-%d %H:%M:%S')
         else:
-            return datetime.datetime.strptime(str, '%Y-%m-%d').date()
+            return datetime.datetime.strptime(str, '%Y-%m-%d')
     else:
         return None
 
@@ -272,12 +269,12 @@ def get_movie_showtimes_data(showtimes_struct, movie_id):
     movie_show_times = []
     for show_time in showtimes_struct:
         for show in show_time['show']:
-            if show['@movie-id'] == movie_id:
+            if show['@movie-id'] == str(movie_id):
                 if show['@order-url']:
                     show_time_id = \
                         re.match(order_url_pattern, show['@order-url']).group(1)
                     show_time_datetime = string_to_datetime(show['@full-date'])
-                    movie_show_times.append((show_time_id, show_time_datetime,
+                    movie_show_times.append((int(show_time_id), show_time_datetime,
                                              show['@hall-id'], show['@technology'],
                                              show['@order-url'], movie_id))
     return movie_show_times
@@ -287,12 +284,18 @@ def write_movie_data(db):
     """
     Create new or update existing movie record in database.
 
+    :param db: An instance of SQLAlchemy of Flask app
     :return:
     """
+    start_time = time.time()
+
     data = get_pk_data('lvov')
     show_times = data['showtimes']['day']
 
     for movie in data['movies']['movie']:
+
+        log.info('Found movie {} in XML'.format(movie['@url']))
+
         dt_start = string_to_datetime(movie['dt-start'])
         dt_end = string_to_datetime(movie['dt-end'])
 
@@ -300,61 +303,89 @@ def write_movie_data(db):
         record = Movie.query.filter_by(id=movie['@id']).first()
 
         if record:
+            log.info('Movie already exists in db')
+
             # Update show start and end dates
             if record.show_start != dt_start:
+                log.info('Show start date differs, updating')
                 record.show_start = dt_start
             if record.show_end != dt_end:
+                log.info('Show end date differs, updating')
                 record.show_end = dt_end
 
             # See if it has IMDB data associated
             if record.imdb_data:
                 # If it does update its rating
+                log.info('Movie IMDB data already exists in db')
                 movie_imdb_data = get_movie_imdb_data(id=record.imdb_data.id)
                 if record.imdb_data.rating != movie_imdb_data[2]:
+                    log.info('IMDB rating differs, updating')
                     record.imdb_data.rating = movie_imdb_data[2]
             else:
                 # If not get movie data from IMDB
                 pk_title = extract_title_from_pk_url(record.url)
+                log.info('Movie IMDB data missing, '
+                         'searching IMDB with title "{}"'.format(pk_title))
                 movie_imdb_data = get_movie_imdb_data(title=pk_title)
                 if movie_imdb_data:
+                    log.info('Movie found on IMDB (id {}), '
+                             'inserting'.format(movie_imdb_data[0]))
                     record.imdb_data = IMDBData(*movie_imdb_data + (record.id,))
+                else:
+                    log.info('Movie not found on IMDB')
 
             movie_showtimes_data = get_movie_showtimes_data(show_times, record.id)
 
-            # See if it has showtimes data associated
-            if record.show_times:
-                # If the movie record already has show times associated
-                # add only those that are not there yet
-                for show_time in movie_showtimes_data:
-                    # TODO: There must be an easier way to do this
-                    for record_show_time in record.show_times:
-                        if show_time(0) != record_show_time.id:
+            if movie_showtimes_data:
+                log.info('Movie show times found in XML')
+                # See if it has showtimes data associated
+                if record.show_times:
+                    # If the movie record already has show times associated
+                    # add only those that are not there yet
+                    log.info('Movie show times already exist in db, updating')
+                    for show_time in movie_showtimes_data:
+                        if not ShowTime.query.filter_by(id=show_time[0]):
                             record.show_times.append(ShowTime(*show_time))
+                else:
+                    # If no show times for a movie found add them
+                    log.info('Movie show times missing, inserting')
+                    record.show_times = \
+                        [ShowTime(*show_time) for show_time in movie_showtimes_data]
             else:
-                # If no show times for a movie found add them
-                record.show_times = \
-                    [ShowTime(*show_time) for show_time in movie_showtimes_data]
+                log.info('Movie show times not found in XML')
         else:
+            log.info('Movie not found in db, inserting')
             # Set IMDB data for the movie
             pk_title = extract_title_from_pk_url(movie['@url'])
             movie_imdb_data = get_movie_imdb_data(title=pk_title)
 
             if movie_imdb_data:
+                log.info('Movie found on IMDB (id {}), '
+                         'inserting'.format(movie_imdb_data[0]))
                 pk_movie_record = Movie(movie['@id'], movie_imdb_data[1],
                                         dt_start, dt_end, movie['@url'])
                 pk_movie_record.imdb_data = IMDBData(*movie_imdb_data + (movie['@id'],))
             else:
+                log.info('Movie not found on IMDB')
                 pk_movie_record = Movie(movie['@id'], pk_title.title(),
                                         dt_start, dt_end, movie['@url'])
 
             # Set show times for the movie
+            log.info('Inserting movie show times')
             movie_showtimes_data = get_movie_showtimes_data(show_times, movie['@id'])
-            pk_movie_record.show_times = \
-                [ShowTime(*show_time) for show_time in movie_showtimes_data]
+            if movie_showtimes_data:
+                log.info('Movie show times found in XML, inserting')
+                pk_movie_record.show_times = \
+                    [ShowTime(*show_time) for show_time in movie_showtimes_data]
+            else:
+                log.info('Movie show times not found in XML')
 
             db.session.add(pk_movie_record)
 
         db.session.commit()
+
+    end_time = time.time()
+    log.info('Job took {} seconds'.format((end_time - start_time)))
 
 
 def titles_match(pk_title, imdb_title):
