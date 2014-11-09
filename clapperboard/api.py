@@ -1,5 +1,6 @@
 import copy
 import datetime
+import os
 
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -8,13 +9,11 @@ from flask.ext.restful import Api, Resource, fields, marshal, abort, reqparse
 from sqlalchemy import or_
 
 
-SQLALCHEMY_DATABASE_URI = \
-    'mysql://clap_user:clap_user_pw@localhost/clap_db?unix_socket=/tmp/mysql.sock'
-
-
 app = Flask(__name__)
 api = Api(app)
-app.config.from_object(__name__)
+app.config.from_object('config.api')
+if os.environ.get('CB_API_SETTINGS'):
+    app.config.from_envvar('CB_API_SETTINGS')
 db = SQLAlchemy(app)
 
 

@@ -1,5 +1,6 @@
 import datetime
 import logging as log
+import os
 import re
 import time
 import unicodedata
@@ -11,20 +12,25 @@ import xmltodict
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from api import db, Movie, IMDBData, ShowTime
+from config.workers import *
 
+
+# TODO: Replace this hack with something more "humane"
+if os.environ.get('CB_WORKERS_SETTINGS'):
+    path = os.environ['CB_WORKERS_SETTINGS']
+    execfile(path)
 
 log.basicConfig(format='[%(asctime)s]: %(levelname)s: %(message)s', level=log.INFO,
-                filename='/var/log/clapperboard/api.log')
+                filename=LOG_FILE)
 
 
-def get_pk_data(city):
+def get_pk_data():
     """
     Get movies and showtimes data from PK website.
 
-    :param city: City to get the data for
     :return: Dictionary containing all PK movies and showtimes data
     """
-    url = 'http://planeta-kino.com.ua/{}/ua/showtimes/xml/'.format(city)
+    url = XML_DATA_URL
     data = urllib2.urlopen(url).read()
     data_dict = xmltodict.parse(data)
 
@@ -105,7 +111,7 @@ def write_movie_data(db):
     """
     start_time = time.time()
 
-    data = get_pk_data('lvov')
+    data = get_pk_data()
     show_times = data['showtimes']['day']
 
     for movie in data['movies']['movie']:
