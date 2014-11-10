@@ -1,0 +1,21 @@
+[supervisord]
+loglevel = debug
+pidfile = {{ run_dir }}/cb_supervisor.pid
+logfile = {{ run_dir }}/cb_supervisor.log
+
+[unix_http_server]
+file = {{ run_dir }}/cb_supervisor.sock
+
+[supervisorctl]
+serverurl = unix://{{ run_dir }}/cb_supervisor.sock
+
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+[program:cb_workers]
+command = {{ base_dir }}/{{ venv_name }}/bin/cb_workers
+environment = CB_WORKERS_SETTINGS={{ base_dir }}/workers_config.py,CB_API_SETTINGS={{ base_dir }}/api_config.py
+
+[program:cb_api]
+command = {{ base_dir }}/{{ venv_name }}/bin/gunicorn clapperboard.api:app
+environment = CB_API_SETTINGS={{ base_dir }}/api_config.py

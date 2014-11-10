@@ -4,3 +4,4 @@ build
 dist
 clapperboard.db
 tasks.py
+.DS_Store

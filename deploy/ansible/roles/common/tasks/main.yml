@@ -1,0 +1,24 @@
+---
+- name: Clone repository
+  git: repo={{ git_repo }} dest={{ dist_location }}
+
+- name: Create virtualenv and install requirements
+  pip: requirements={{ dist_location }}/requirements.txt virtualenv_command='virtualenv -p /usr/bin/python2' virtualenv={{ base_dir }}/{{ venv_name }}
+
+- name: Install application
+  pip: name={{ dist_location }}/. virtualenv={{ base_dir }}/{{ venv_name }}
+
+- name: Create run directory
+  file: state=directory path={{ base_dir }}/run
+
+- name: Install supervisor configuration
+  template: src=cb_supervisor.j2 dest={{ base_dir }}/cb_supervisor.conf
+
+- name: Install application configuration
+  template: src={{ item }}.j2 dest={{ base_dir }}/{{ item }}.py
+  with_items:
+    - api_config
+    - workers_config
+
+- name: Start supervisor
+  command: "{{ base_dir }}/{{ venv_name }}/bin/supervisord -c {{ base_dir }}/cb_supervisor.conf"
