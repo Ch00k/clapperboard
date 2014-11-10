@@ -20,8 +20,8 @@ if os.environ.get('CB_WORKERS_SETTINGS'):
     path = os.environ['CB_WORKERS_SETTINGS']
     execfile(path)
 
-log.basicConfig(format='[%(asctime)s]: %(levelname)s: %(message)s', level=log.INFO,
-                filename=LOG_FILE)
+log.basicConfig(format='[%(asctime)s]: %(levelname)s: %(message)s',
+                level=getattr(log, LOG_LEVEL), filename=LOG_FILE)
 
 
 def get_pk_data():
@@ -275,15 +275,18 @@ def get_movie_imdb_data(**kwargs):
                 imdb_movie.get('rating'))
 
 
-sched = BackgroundScheduler()
+def main():
+    sched = BackgroundScheduler()
 
-# Add two jobs: one for immediate fetching of data (on start)
-# and another one hourly
-sched.add_job(write_movie_data, args=(db,))
-sched.add_job(write_movie_data, args=(db,), trigger='cron', hour=1)
+    # Add two jobs: one for immediate fetching of data (on start)
+    # and another one hourly
+    sched.add_job(write_movie_data, args=(db,))
+    sched.add_job(write_movie_data, args=(db,), trigger='cron', hour=SCHED_TIME_HOURS)
 
-
-if __name__ == '__main__':
     sched.start()
     while True:
         time.sleep(60)
+
+
+if __name__ == '__main__':
+    main()
