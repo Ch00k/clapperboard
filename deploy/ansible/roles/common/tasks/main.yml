@@ -6,7 +6,7 @@
   pip: requirements={{ dist_location }}/requirements.txt virtualenv_command='virtualenv -p /usr/bin/python2' virtualenv={{ base_dir }}/{{ venv_name }}
 
 - name: Install application
-  pip: name={{ dist_location }}/. virtualenv={{ base_dir }}/{{ venv_name }}
+  pip: name={{ dist_location }}/. extra_args='-U' virtualenv={{ base_dir }}/{{ venv_name }}
 
 - name: Create run directory
   file: state=directory path={{ base_dir }}/run
