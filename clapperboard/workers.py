@@ -276,6 +276,9 @@ def get_movie_imdb_data(**kwargs):
 
 
 def main():
+    # In case workers are started before api
+    db.create_all()
+
     sched = BackgroundScheduler()
 
     # Add two jobs: one for immediate fetching of data (on start)

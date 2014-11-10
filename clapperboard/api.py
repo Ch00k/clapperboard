@@ -55,22 +55,22 @@ class IMDBData(db.Model):
 
 class ShowTime(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    datetime = db.Column(db.DateTime)
+    date_time = db.Column(db.DateTime)
     hall_id = db.Column(db.Integer)
     technology = db.Column(db.String(8))
     order_url = db.Column(db.String(255))
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
 
-    def __init__(self, id, datetime, hall_id, technology, order_url, movie_id):
+    def __init__(self, id, date_time, hall_id, technology, order_url, movie_id):
         self.id = id
-        self.datetime = datetime
+        self.date_time = date_time
         self.hall_id = hall_id
         self.technology = technology
         self.order_url = order_url
         self.movie_id = movie_id
 
     def __repr__(self):
-        return '<ShowTime %r, %r>' % (self.id, self.datetime)
+        return '<ShowTime %r, %r>' % (self.id, self.date_time)
 
 
 imdb_data_fields = {
@@ -82,7 +82,7 @@ imdb_data_fields = {
 
 show_time_fields = {
     'id': fields.Integer,
-    'datetime': fields.DateTime,
+    'date_time': fields.DateTime,
     'hall_id': fields.Integer,
     'technology': fields.String,
     'order_url': fields.String
@@ -102,7 +102,7 @@ class MovieListAPI(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('imdb_data', type=str)
-        self.parser.add_argument('showtimes', type=str)
+        self.parser.add_argument('show_times', type=str)
         super(MovieListAPI, self).__init__()
 
     def get(self):
@@ -111,7 +111,7 @@ class MovieListAPI(Resource):
 
         if args['imdb_data']:
             m_fields['imdb_data'] = fields.Nested(imdb_data_fields)
-        if args['showtimes']:
+        if args['show_times']:
             m_fields['show_times'] = fields.Nested(show_time_fields)
 
         return {'movies': marshal(get_current_movies(), m_fields)}

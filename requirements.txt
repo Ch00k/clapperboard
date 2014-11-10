@@ -5,3 +5,6 @@ MySQL-python
 xmltodict
 apscheduler
 IMDbPY
+
+supervisor
+-e git+https://github.com/benoitc/gunicorn.git#egg=gunicorn
