@@ -12,7 +12,9 @@ api_conf: "{{ base_dir }}/api_config.py"
 workers_conf: "{{ base_dir }}/workers_config.py"
 
 sqlalchemy_db_uri: "mysql://clap_user:clap_user_pw@localhost/clap_db?unix_socket=/var/run/mysqld/mysqld.sock"
+
 workers_log_file: "/var/log/clapperboard/workers.log"
 base_url: "http://planeta-kino.com.ua"
 city: "lvov"
 debug: false
+sched_time_hours: 2

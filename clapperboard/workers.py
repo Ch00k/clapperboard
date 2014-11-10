@@ -102,11 +102,10 @@ def get_movie_showtimes_data(showtimes_struct, movie_id):
     return movie_show_times
 
 
-def write_movie_data(db):
+def write_movie_data():
     """
     Create new or update existing movie record in database.
 
-    :param db: An instance of SQLAlchemy of Flask app
     :return:
     """
     start_time = time.time()
@@ -283,8 +282,10 @@ def main():
 
     # Add two jobs: one for immediate fetching of data (on start)
     # and another one hourly
-    sched.add_job(write_movie_data, args=(db,))
-    sched.add_job(write_movie_data, args=(db,), trigger='cron', hour=SCHED_TIME_HOURS)
+    # TODO: Don't allow situations when cron and onetime jobs can run simultaneously
+    sched.add_job(write_movie_data, name='write_movie_data_onetime')
+    sched.add_job(write_movie_data, name='write_movie_data_periodic',
+                  trigger='cron', hour='*/{}'.format(SCHED_TIME_HOURS))
 
     sched.start()
     while True:

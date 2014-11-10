@@ -20,5 +20,14 @@
     - api_config
     - workers_config
 
+- name: Shutdown supervisor
+  command: "{{ base_dir }}/{{ venv_name }}/bin/supervisorctl -c {{ base_dir }}/cb_supervisor.conf shutdown"
+
 - name: Start supervisor
   command: "{{ base_dir }}/{{ venv_name }}/bin/supervisord -c {{ base_dir }}/cb_supervisor.conf"
+
+# - name: Restart supervisor jobs
+#   supervisorctl: name={{ item }} state=stopped config={{ base_dir }}/cb_supervisor.conf supervisorctl_path={{ base_dir }}/{{ venv_name }}/bin/supervisorctl
+#   with_items:
+#     - cb_api
+#     - cb_workers
