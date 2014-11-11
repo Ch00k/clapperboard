@@ -139,7 +139,7 @@ class MovieAPI(Resource):
             abort(404, message='Movie {} not found'.format(movie_id))
 
         self.parser.add_argument('imdb_data', type=str, location='args')
-        self.parser.add_argument('showtimes', type=str, location='args')
+        self.parser.add_argument('show_times', type=str, location='args')
         args = self.parser.parse_args()
 
         m_fields = copy.copy(movie_fields)
