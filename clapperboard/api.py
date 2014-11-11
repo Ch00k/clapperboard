@@ -146,7 +146,7 @@ class MovieAPI(Resource):
 
         if args['imdb_data']:
             m_fields['imdb_data'] = fields.Nested(imdb_data_fields)
-        if args['showtimes']:
+        if args['show_times']:
             m_fields['show_times'] = fields.Nested(show_time_fields)
 
         return {'movie': marshal(movie, m_fields)}
