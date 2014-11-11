@@ -111,8 +111,8 @@ def movie_data_type(data):
 class MovieListAPI(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
-        self.parser.add_argument('imdb_data', type=str)
-        self.parser.add_argument('show_times', type=str)
+        self.parser.add_argument('imdb_data', type=str, location='args')
+        self.parser.add_argument('show_times', type=str, location='args')
         super(MovieListAPI, self).__init__()
 
     def get(self):
