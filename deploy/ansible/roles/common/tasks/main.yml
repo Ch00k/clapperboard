@@ -8,9 +8,6 @@
 - name: Install application
   pip: name={{ dist_location }}/. extra_args='-U' virtualenv={{ base_dir }}/{{ venv_name }}
 
-- name: Migrate database
-  command: chdir={{ dist_location }} {{ base_dir }}/{{ venv_name }}/bin/cb_manage db upgrade
-
 - name: Create run directory
   file: state=directory path={{ base_dir }}/run
 
@@ -22,6 +19,10 @@
   with_items:
     - api_config
     - workers_config
+
+- name: Migrate database
+  # command won't work here because it does not read env vars
+  shell: chdir={{ dist_location }} CB_API_SETTINGS={{ base_dir }}/api_config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage db upgrade
 
 - name: Shutdown supervisor
   command: "{{ base_dir }}/{{ venv_name }}/bin/supervisorctl -c {{ base_dir }}/cb_supervisor.conf shutdown"

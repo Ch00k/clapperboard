@@ -1,3 +1,3 @@
 #!/bin/bash
 
-ansible-playbook -i production site.yml
+ansible-playbook -vvvvvvv -i production site.yml

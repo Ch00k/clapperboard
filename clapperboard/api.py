@@ -175,34 +175,6 @@ class MovieAPI(Resource):
         return 200
 
 
-# class MovieIMDBDataAPI(Resource):
-#     def get(self, movie_id):
-#         movie = Movie.query.filter_by(id=movie_id).first()
-#         if not movie:
-#             abort(404, message='Movie {} not found'.format(movie_id))
-#         imdb_data = movie.imdb_data
-#         if imdb_data:
-#             resp = {'imdb_data': marshal(imdb_data, imdb_data_fields)}
-#         else:
-#             resp = {'imdb_data': {}}
-#
-#         return resp
-#
-#
-# class MovieShowTimesAPI(Resource):
-#     def get(self, movie_id):
-#         movie = Movie.query.filter_by(id=movie_id).first()
-#         if not movie:
-#             abort(404, message='Movie {} not found'.format(movie_id))
-#         showtime_data = movie.show_times
-#         if showtime_data:
-#             resp = {'showtimes': marshal(showtime_data, show_time_fields)}
-#         else:
-#             resp = {'showtimes': []}
-#
-#         return resp
-
-
 def get_current_movies(show_start_within_days=14):
     """
     Get list of PK movies that are currently being shown or will start to be shown
@@ -224,8 +196,6 @@ def get_current_movies(show_start_within_days=14):
 
 api.add_resource(MovieListAPI, '/movies')
 api.add_resource(MovieAPI, '/movies/<int:movie_id>')
-# api.add_resource(MovieIMDBDataAPI, '/movies/<int:movie_id>/imdb-data')
-# api.add_resource(MovieShowTimesAPI, '/movies/<int:movie_id>/showtimes')
 
 
 if __name__ == '__main__':
