@@ -36,7 +36,7 @@ class Movie(db.Model):
         self.url = url
 
     def __repr__(self):
-        return '<PKMovie %r, %r>' % (self.id, self.title)
+        return '<Movie %r, %r>' % (self.id, self.title)
 
 
 class IMDBData(db.Model):
