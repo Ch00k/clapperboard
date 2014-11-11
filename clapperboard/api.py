@@ -111,12 +111,14 @@ def movie_data_type(data):
 class MovieListAPI(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
-        self.parser.add_argument('imdb_data', type=str, location='args')
-        self.parser.add_argument('show_times', type=str, location='args')
         super(MovieListAPI, self).__init__()
 
     def get(self):
+        self.parser.add_argument('imdb_data', type=str, location='args')
+        self.parser.add_argument('show_times', type=str, location='args')
+        self.parser.add_argument('current', type=str, location='args')
         args = self.parser.parse_args()
+
         m_fields = copy.copy(movie_fields)
 
         # TODO: Return empty object if movie.imdb_data = None
@@ -125,7 +127,12 @@ class MovieListAPI(Resource):
         if args['show_times']:
             m_fields['show_times'] = fields.Nested(show_time_fields)
 
-        return {'movies': marshal(get_current_movies(), m_fields)}
+        if args['current']:
+            movies = get_current_movies()
+        else:
+            movies = Movie.query.all()
+
+        return {'movies': marshal(movies, m_fields)}
 
 
 class MovieAPI(Resource):
