@@ -8,6 +8,8 @@ from flask.ext.restful import Api, Resource, fields, marshal, abort, reqparse
 
 from sqlalchemy import or_
 
+from helpers import get_movie_imdb_data
+
 
 app = Flask(__name__)
 api = Api(app)
@@ -98,6 +100,14 @@ movie_fields = {
 }
 
 
+def movie_data_type(data):
+    if isinstance(data, dict):
+        if data.get('imdb_data'):
+            if data['imdb_data'].get('id'):
+                return data
+    raise ValueError('Malformed request body')
+
+
 class MovieListAPI(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
@@ -120,8 +130,6 @@ class MovieListAPI(Resource):
 class MovieAPI(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
-        self.parser.add_argument('imdb_data', type=str)
-        self.parser.add_argument('showtimes', type=str)
         super(MovieAPI, self).__init__()
 
     def get(self, movie_id):
@@ -130,7 +138,10 @@ class MovieAPI(Resource):
         if not movie:
             abort(404, message='Movie {} not found'.format(movie_id))
 
+        self.parser.add_argument('imdb_data', type=str, location='args')
+        self.parser.add_argument('showtimes', type=str, location='args')
         args = self.parser.parse_args()
+
         m_fields = copy.copy(movie_fields)
 
         if args['imdb_data']:
@@ -139,6 +150,28 @@ class MovieAPI(Resource):
             m_fields['show_times'] = fields.Nested(show_time_fields)
 
         return {'movie': marshal(movie, m_fields)}
+
+    def put(self, movie_id):
+        movie = Movie.query.filter_by(id=movie_id).first()
+
+        if not movie:
+            abort(404, message='Movie {} not found'.format(movie_id))
+
+        self.parser.add_argument('movie', type=movie_data_type, location='json', required=True)
+        args = self.parser.parse_args()
+
+        imdb_id = args['movie']['imdb_data']['id']
+        imdb_movie = get_movie_imdb_data(id=imdb_id)
+        imdb_data_record = IMDBData(*imdb_movie + (movie_id,))
+
+        if not IMDBData.query.filter_by(id=imdb_movie[0]).first():
+            db.session.add(imdb_data_record)
+        if movie.title != imdb_movie[1]:
+            movie.title = imdb_movie[1]
+
+        db.session.commit()
+
+        return 200
 
 
 # class MovieIMDBDataAPI(Resource):
