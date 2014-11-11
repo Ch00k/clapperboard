@@ -29,7 +29,13 @@ def write_movie_data():
     data = get_pk_data(XML_DATA_URL)
     show_times = data['showtimes']['day']
 
+    processed_movies = 0
+    existing_movies = 0
+    new_movies = 0
+
+
     for movie in data['movies']['movie']:
+        processed_movies += 1
 
         log.info('Found movie {} in XML'.format(movie['@url']))
 
@@ -40,6 +46,8 @@ def write_movie_data():
         record = Movie.query.filter_by(id=movie['@id']).first()
 
         if record:
+            existing_movies += 1
+
             log.info('Movie already exists in db')
 
             # Update show start and end dates
@@ -91,6 +99,8 @@ def write_movie_data():
             else:
                 log.info('Movie show times not found in XML')
         else:
+            new_movies += 1
+
             log.info('Movie not found in db, inserting')
             # Set IMDB data for the movie
             pk_title = extract_title_from_pk_url(movie['@url'])
@@ -123,6 +133,9 @@ def write_movie_data():
 
     end_time = time.time()
     log.info('Job took {} seconds'.format((end_time - start_time)))
+    log.info('Movies processed: {}'.format(processed_movies))
+    log.info('Movies already in db: {}'.format(existing_movies))
+    log.info('New movies: {}'.format(new_movies))
 
 
 def main():
