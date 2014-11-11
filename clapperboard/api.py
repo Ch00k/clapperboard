@@ -119,6 +119,7 @@ class MovieListAPI(Resource):
         args = self.parser.parse_args()
         m_fields = copy.copy(movie_fields)
 
+        # TODO: Return empty object if movie.imdb_data = None
         if args['imdb_data']:
             m_fields['imdb_data'] = fields.Nested(imdb_data_fields)
         if args['show_times']:
@@ -145,10 +146,15 @@ class MovieAPI(Resource):
         m_fields = copy.copy(movie_fields)
 
         if args['imdb_data']:
-            m_fields['imdb_data'] = fields.Nested(imdb_data_fields)
+            if movie.imdb_data:
+                m_fields['imdb_data'] = fields.Nested(imdb_data_fields)
+            else:
+                m_fields['imdb_data'] = fields.Nested({})
         if args['show_times']:
             m_fields['show_times'] = fields.Nested(show_time_fields)
 
+        # if not movie.imdb_data:
+        #     movie.imdb_data = {}
         return {'movie': marshal(movie, m_fields)}
 
     # TODO: Make this call asynchronous
