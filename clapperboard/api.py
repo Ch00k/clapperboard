@@ -43,13 +43,13 @@ class IMDBData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255))
     rating = db.Column(db.Float)
-    pk_movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
+    movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
 
-    def __init__(self, id, title, rating, pk_movie_id):
+    def __init__(self, id, title, rating, movie_id):
         self.id = id
         self.title = title
         self.rating = rating
-        self.pk_movie_id = pk_movie_id
+        self.movie_id = movie_id
 
     def __repr__(self):
         return '<IMDBMovie %r, %r>' % (self.id, self.title)
@@ -151,6 +151,7 @@ class MovieAPI(Resource):
 
         return {'movie': marshal(movie, m_fields)}
 
+    # TODO: Make this call asynchronous
     def put(self, movie_id):
         movie = Movie.query.filter_by(id=movie_id).first()
 
@@ -228,5 +229,4 @@ api.add_resource(MovieAPI, '/movies/<int:movie_id>')
 
 
 if __name__ == '__main__':
-    db.create_all()
     app.run()

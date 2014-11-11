@@ -8,6 +8,9 @@
 - name: Install application
   pip: name={{ dist_location }}/. extra_args='-U' virtualenv={{ base_dir }}/{{ venv_name }}
 
+- name: Migrate database
+  command: chdir={{ dist_location }} {{ base_dir }}/{{ venv_name }}/bin/cb_manage db upgrade
+
 - name: Create run directory
   file: state=directory path={{ base_dir }}/run
 
