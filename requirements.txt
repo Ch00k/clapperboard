@@ -2,6 +2,7 @@ flask
 flask-restful
 flask-sqlalchemy
 flask-migrate
+flask-cors
 MySQL-python
 xmltodict
 apscheduler
