@@ -19,4 +19,4 @@ city: "lvov"
 debug: false
 sched_time_hours: 2
 
-cors_origins: clapperboard.minuteware.net
+cors_origins: *
