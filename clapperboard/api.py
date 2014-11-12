@@ -5,6 +5,7 @@ import os
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.restful import Api, Resource, fields, marshal, abort, reqparse
+from flask.ext.cors import CORS
 
 from sqlalchemy import or_
 
@@ -17,6 +18,7 @@ app.config.from_object('clapperboard.config.api')
 if os.environ.get('CB_API_SETTINGS'):
     app.config.from_envvar('CB_API_SETTINGS')
 db = SQLAlchemy(app)
+cors = CORS(app)
 
 
 class Movie(db.Model):
