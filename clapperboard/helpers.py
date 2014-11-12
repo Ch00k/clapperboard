@@ -1,5 +1,6 @@
 import datetime
 import re
+import time
 import urllib2
 
 import imdb
@@ -24,19 +25,17 @@ def extract_title_from_pk_url(url):
     return url.split('/')[-2].replace('-', ' ')
 
 
-def string_to_datetime(str):
+def datetime_string_to_timestamp(str):
     """
-    Convert date string representation to datetime object
+    Convert datetime string representation to timestamp
 
     :param str: Date string format
-    :return: Datetime object
+    :return: Integer
     """
     if str:
         # A dull check whether the string contains time
-        if ':' in str:
-            return datetime.datetime.strptime(str, '%Y-%m-%d %H:%M:%S')
-        else:
-            return datetime.datetime.strptime(str, '%Y-%m-%d')
+        pattern = '%Y-%m-%d %H:%M:%S' if ':' in str else '%Y-%m-%d'
+        return time.mktime(datetime.datetime.strptime(str, pattern).timetuple())
     else:
         return None
 
@@ -58,8 +57,8 @@ def get_movie_showtimes_data(showtimes_struct, movie_id):
                 if show['@order-url']:
                     show_time_id = \
                         re.match(order_url_pattern, show['@order-url']).group(1)
-                    show_time_datetime = string_to_datetime(show['@full-date'])
-                    movie_show_times.append((int(show_time_id), show_time_datetime,
+                    show_ts = datetime_string_to_timestamp(show['@full-date'])
+                    movie_show_times.append((int(show_time_id), show_ts,
                                              show['@hall-id'], show['@technology'],
                                              show['@order-url'], movie_id))
     return movie_show_times

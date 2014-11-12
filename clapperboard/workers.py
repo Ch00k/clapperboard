@@ -1,6 +1,5 @@
 import logging as log
 import os
-import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -33,14 +32,13 @@ def write_movie_data():
     existing_movies = 0
     new_movies = 0
 
-
     for movie in data['movies']['movie']:
         processed_movies += 1
 
         log.info('Found movie {} in XML'.format(movie['@url']))
 
-        dt_start = string_to_datetime(movie['dt-start'])
-        dt_end = string_to_datetime(movie['dt-end'])
+        show_start_ts = datetime_string_to_timestamp(movie['dt-start'])
+        show_end_ts = datetime_string_to_timestamp(movie['dt-end'])
 
         # See if the record with that id already exists
         record = Movie.query.filter_by(id=movie['@id']).first()
@@ -51,12 +49,12 @@ def write_movie_data():
             log.info('Movie already exists in db')
 
             # Update show start and end dates
-            if record.show_start != dt_start:
+            if record.show_start != show_start_ts:
                 log.info('Show start date differs, updating')
-                record.show_start = dt_start
-            if record.show_end != dt_end:
+                record.show_start = show_start_ts
+            if record.show_end != show_end_ts:
                 log.info('Show end date differs, updating')
-                record.show_end = dt_end
+                record.show_end = show_end_ts
 
             # See if it has IMDB data associated
             if record.imdb_data:
@@ -110,12 +108,12 @@ def write_movie_data():
                 log.info('Movie found on IMDB (id {}), '
                          'inserting'.format(movie_imdb_data[0]))
                 pk_movie_record = Movie(movie['@id'], movie_imdb_data[1],
-                                        dt_start, dt_end, movie['@url'])
+                                        show_start_ts, show_end_ts, movie['@url'])
                 pk_movie_record.imdb_data = IMDBData(*movie_imdb_data + (movie['@id'],))
             else:
                 log.info('Movie not found on IMDB')
                 pk_movie_record = Movie(movie['@id'], pk_title.title(),
-                                        dt_start, dt_end, movie['@url'])
+                                        show_start_ts, show_end_ts, movie['@url'])
 
             # Set show times for the movie
             log.info('Inserting movie show times')

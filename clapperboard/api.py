@@ -5,6 +5,7 @@ import os
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.restful import Api, Resource, fields, marshal, abort, reqparse
+from flask.ext.restful.fields import get_value, Nested
 from flask.ext.cors import CORS
 
 from sqlalchemy import or_
@@ -22,10 +23,10 @@ cors = CORS(app)
 
 
 class Movie(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=False)
     title = db.Column(db.String(255))
-    show_start = db.Column(db.DateTime)
-    show_end = db.Column(db.DateTime)
+    show_start = db.Column(db.Integer)
+    show_end = db.Column(db.Integer)
     url = db.Column(db.String(255))
     imdb_data = db.relationship('IMDBData', uselist=False)
     show_times = db.relationship('ShowTime')
@@ -42,7 +43,7 @@ class Movie(db.Model):
 
 
 class IMDBData(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=False)
     title = db.Column(db.String(255))
     rating = db.Column(db.Float)
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
@@ -58,8 +59,8 @@ class IMDBData(db.Model):
 
 
 class ShowTime(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    date_time = db.Column(db.DateTime)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=False)
+    date_time = db.Column(db.Integer)
     hall_id = db.Column(db.Integer)
     technology = db.Column(db.String(8))
     order_url = db.Column(db.String(255))
@@ -86,7 +87,7 @@ imdb_data_fields = {
 
 show_time_fields = {
     'id': fields.Integer,
-    'date_time': fields.DateTime,
+    'date_time': fields.Integer,
     'hall_id': fields.Integer,
     'technology': fields.String,
     'order_url': fields.String
@@ -96,10 +97,29 @@ show_time_fields = {
 movie_fields = {
     'id': fields.Integer,
     'title': fields.String,
-    'show_start': fields.DateTime,
-    'show_end': fields.DateTime,
+    'show_start': fields.Integer(default=None),
+    'show_end': fields.Integer(default=None),
     'url': fields.String,
 }
+
+
+class NestedWithEmpty(Nested):
+    """
+    Alows returning an empty dictionary if marshaled value is None
+    """
+    def __init__(self, nested, allow_empty=False, **kwargs):
+        self.allow_empty = allow_empty
+        super(NestedWithEmpty, self).__init__(nested, **kwargs)
+
+    def output(self, key, obj):
+        value = get_value(key if self.attribute is None else self.attribute, obj)
+        if value is None:
+            if self.allow_null:
+                return None
+            elif self.allow_empty:
+                return {}
+
+        return marshal(value, self.nested)
 
 
 def movie_data_type(data):
@@ -125,9 +145,9 @@ class MovieListAPI(Resource):
 
         # TODO: Return empty object if movie.imdb_data = None
         if args['imdb_data']:
-            m_fields['imdb_data'] = fields.Nested(imdb_data_fields)
+            m_fields['imdb_data'] = NestedWithEmpty(imdb_data_fields, allow_empty=True)
         if args['show_times']:
-            m_fields['show_times'] = fields.Nested(show_time_fields)
+            m_fields['show_times'] = NestedWithEmpty(show_time_fields, allow_empty=True)
 
         if args['current']:
             movies = get_current_movies()
@@ -155,12 +175,9 @@ class MovieAPI(Resource):
         m_fields = copy.copy(movie_fields)
 
         if args['imdb_data']:
-            if movie.imdb_data:
-                m_fields['imdb_data'] = fields.Nested(imdb_data_fields)
-            else:
-                m_fields['imdb_data'] = fields.Nested({})
+            m_fields['imdb_data'] = NestedWithEmpty(imdb_data_fields, allow_empty=True)
         if args['show_times']:
-            m_fields['show_times'] = fields.Nested(show_time_fields)
+            m_fields['show_times'] = NestedWithEmpty(show_time_fields, allow_empty=True)
 
         # if not movie.imdb_data:
         #     movie.imdb_data = {}

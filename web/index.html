@@ -30,8 +30,9 @@
                 <tr ng-repeat="item in main.items | orderBy : 'imdb_data.rating' : true">
                     <td><a href="{{item.url}}">{{item.title}}</a></td>
                     <td><a href="http://www.imdb.com/title/tt{{item.imdb_data.id}}">{{item.imdb_data.rating}}</a></td>
-                    <td>{{item.show_start}}</td>
-                    <td>{{item.show_end}}</td>
+                    <td>{{item.show_start * 1000 | date : 'dd.MM.yyyy'}}</td>
+                    <td ng-if="item.show_end !== null">{{item.show_end * 1000 | date : 'dd.MM.yyyy'}}</td>
+                    <td ng-if="item.show_end === null"></td>
                 </tr>
             </tbody>
         </table>
