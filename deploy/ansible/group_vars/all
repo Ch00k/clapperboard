@@ -5,6 +5,7 @@ git_repo: "git@github.com:Ch00k/clapperboard.git"
 base_dir: "/opt/clapperboard"
 run_dir: "{{ base_dir }}/run"
 dist_location: "{{ base_dir }}/cb_dist"
+web_location: "{{ base_dir }}/cb_web"
 venv_name: "cb_venv"
 supervisor_conf: "{{ base_dir }}/cb_supervisor.conf"
 
@@ -19,4 +20,4 @@ city: "lvov"
 debug: false
 sched_time_hours: 2
 
-cors_origins: *
+cors_origins: "*"

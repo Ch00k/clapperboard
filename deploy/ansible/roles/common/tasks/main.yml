@@ -30,6 +30,15 @@
 - name: Start supervisor
   command: "{{ base_dir }}/{{ venv_name }}/bin/supervisord -c {{ base_dir }}/cb_supervisor.conf"
 
+- name: Remove web direcory
+  command: rm -rf {{ web_location }}
+
+- name: Copy web
+  command: cp -R {{ dist_location }}/web {{ web_location }}
+
+- name: Install AngularJS
+  command: chdir={{ web_location }} ~/node_modules/.bin/bower install angular
+
 # - name: Restart supervisor jobs
 #   supervisorctl: name={{ item }} state=stopped config={{ base_dir }}/cb_supervisor.conf supervisorctl_path={{ base_dir }}/{{ venv_name }}/bin/supervisorctl
 #   with_items:
