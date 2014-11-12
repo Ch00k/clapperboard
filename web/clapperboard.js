@@ -1,5 +1,5 @@
 angular.module('Clapperboard', [])
-    .constant('ENDPOINT_URI', 'http://localhost:5000/')
+    .constant('ENDPOINT_URI', 'http://minuteware.net/clapperboard/')
     .controller('MainCtrl', function (ItemsModel) {
         var main = this;
 
