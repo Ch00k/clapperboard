@@ -4,31 +4,42 @@
     <meta charset="utf-8">
     <title>Clapperboard</title>
 
-    <script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/angular/angular.min.js"></script>
     <script src="clapperboard.js"></script>
-    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
-
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
 </head>
+
 <body ng-controller="MainCtrl as main">
 
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>IMDB rating</th>
-            <th>Show start</th>
-            <th>Show end</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr ng-repeat="item in main.items | orderBy : 'imdb_data.rating' : true">
-            <td><a href="{{item.url}}">{{item.title}}</a></td>
-            <td><a href="http://www.imdb.com/title/tt{{item.imdb_data.id}}">{{item.imdb_data.rating}}</a></td>
-            <td>{{item.show_start}}</td>
-            <td>{{item.show_end}}</td>
-        </tr>
-    </tbody>
-</table>
+<div class="container-fluid">
+    <div class="page-header">
+        <h1 class="text-center">Clapperboard<br><small>Find what to watch with ease</small></h1>
+    </div>
 
+    <div>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>IMDB rating</th>
+                    <th>Show start</th>
+                    <th>Show end</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="item in main.items | orderBy : 'imdb_data.rating' : true">
+                    <td><a href="{{item.url}}">{{item.title}}</a></td>
+                    <td><a href="http://www.imdb.com/title/tt{{item.imdb_data.id}}">{{item.imdb_data.rating}}</a></td>
+                    <td>{{item.show_start}}</td>
+                    <td>{{item.show_end}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+<footer class="text-center">Developed by Andriy Yurchuk<br><a href="https://github.com/Ch00k/clapperboard">Github</a></footer>
+
+</div>
 </body>
 </html>

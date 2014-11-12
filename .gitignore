@@ -5,3 +5,4 @@ dist
 clapperboard.db
 tasks.py
 .DS_Store
+bower_components

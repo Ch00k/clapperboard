@@ -39,6 +39,9 @@
 - name: Install AngularJS
   command: chdir={{ web_location }} ~/node_modules/.bin/bower install angular
 
+- name: Install Bootstrap
+  command: chdir={{ web_location }} ~/node_modules/.bin/bower install bootstrap
+
 # - name: Restart supervisor jobs
 #   supervisorctl: name={{ item }} state=stopped config={{ base_dir }}/cb_supervisor.conf supervisorctl_path={{ base_dir }}/{{ venv_name }}/bin/supervisorctl
 #   with_items:
