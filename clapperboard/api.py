@@ -105,7 +105,7 @@ movie_fields = {
 
 class NestedWithEmpty(Nested):
     """
-    Alows returning an empty dictionary if marshaled value is None
+    Allows returning an empty dictionary if marshaled value is None
     """
     def __init__(self, nested, allow_empty=False, **kwargs):
         self.allow_empty = allow_empty

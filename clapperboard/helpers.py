@@ -57,8 +57,9 @@ def get_movie_showtimes_data(showtimes_struct, movie_id):
                 if show['@order-url']:
                     show_time_id = \
                         re.match(order_url_pattern, show['@order-url']).group(1)
+                    show_time_id = int(show_time_id)
                     show_ts = datetime_string_to_timestamp(show['@full-date'])
-                    movie_show_times.append((int(show_time_id), show_ts,
+                    movie_show_times.append((show_time_id, show_ts,
                                              show['@hall-id'], show['@technology'],
                                              show['@order-url'], movie_id))
     return movie_show_times

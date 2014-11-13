@@ -83,12 +83,20 @@ def write_movie_data():
                 log.info('Movie show times found in XML')
                 # See if it has showtimes data associated
                 if record.show_times:
+                    # If the record is found in db but is not XML delete the record
+                    for show_time_record in record.show_times:
+                        if not show_time_record.id in \
+                                [movie_show_time[0] for movie_show_time in
+                                 movie_showtimes_data]:
+                            log.info('Outdated show time record found, removing')
+                            db.session.delete(show_time_record)
                     # If the movie record already has show times associated
                     # add only those that are not there yet
                     log.info('Movie show times already exist in db, updating')
                     for show_time in movie_showtimes_data:
                         if not ShowTime.query.filter_by(id=show_time[0]):
                             record.show_times.append(ShowTime(*show_time))
+
                 else:
                     # If no show times for a movie found add them
                     log.info('Movie show times missing, inserting')
