@@ -14,7 +14,7 @@ angular.module('Clapperboard', [])
     })
     .service('ItemsModel', function ($http, ENDPOINT_URI) {
         var service = this,
-            path = 'movies?imdb_data=1';
+            path = 'movies?starting_within_days=14&imdb_data=1';
 
         function getUrl() {
             return ENDPOINT_URI + path;

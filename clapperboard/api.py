@@ -1,6 +1,7 @@
 import copy
 import datetime
 import os
+import time
 
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -137,8 +138,9 @@ class MovieListAPI(Resource):
 
     def get(self):
         self.parser.add_argument('imdb_data', type=str, location='args')
+        #self.parser.add_argument('current', type=str, location='args')
         self.parser.add_argument('show_times', type=str, location='args')
-        self.parser.add_argument('current', type=str, location='args')
+        self.parser.add_argument('starting_within_days', type=int, location='args')
         args = self.parser.parse_args()
 
         m_fields = copy.copy(movie_fields)
@@ -149,10 +151,11 @@ class MovieListAPI(Resource):
         if args['show_times']:
             m_fields['show_times'] = NestedWithEmpty(show_time_fields, allow_empty=True)
 
-        if args['current']:
-            movies = get_current_movies()
+        if args['starting_within_days']:
+            movies = get_movies(current=True,
+                                starting_within_days=args['starting_within_days'])
         else:
-            movies = Movie.query.all()
+            movies = get_movies(current=True)
 
         return {'movies': marshal(movies, m_fields)}
 
@@ -179,8 +182,6 @@ class MovieAPI(Resource):
         if args['show_times']:
             m_fields['show_times'] = NestedWithEmpty(show_time_fields, allow_empty=True)
 
-        # if not movie.imdb_data:
-        #     movie.imdb_data = {}
         return {'movie': marshal(movie, m_fields)}
 
     # TODO: Make this call asynchronous
@@ -190,7 +191,8 @@ class MovieAPI(Resource):
         if not movie:
             abort(404, message='Movie {} not found'.format(movie_id))
 
-        self.parser.add_argument('movie', type=movie_data_type, location='json', required=True)
+        self.parser.add_argument('movie', type=movie_data_type, location='json',
+                                 required=True)
         args = self.parser.parse_args()
 
         imdb_id = args['movie']['imdb_data']['id']
@@ -207,23 +209,29 @@ class MovieAPI(Resource):
         return 200
 
 
-def get_current_movies(show_start_within_days=14):
+def get_movies(**kwargs):
     """
-    Get list of PK movies that are currently being shown or will start to be shown
-    in the nearest days
+    Get list of movies filtering by various criteria
 
-    :param show_start_within_days: number of days in future that movie show should
-                                   start within
-    :return: List of PK movie objects
+    :param kwargs: current: show only movies whose show end date is later than now
+                   starting_within_days: show only movies whose show start date is no
+                   later than starting_within_days value
+    :return:
     """
-    today = datetime.date.today()
-    show_start_last_day = today + datetime.timedelta(show_start_within_days)
+    now = int(time.time())
 
-    movies_list = Movie.query.filter(Movie.show_start != None) \
-        .filter(Movie.show_start <= show_start_last_day) \
-        .filter(or_(Movie.show_end == None, Movie.show_end >= today)).all()
+    all_movies = Movie.query
+    movies = all_movies
 
-    return movies_list
+    if kwargs.get('current'):
+        movies = movies.filter(or_(Movie.show_end == None, Movie.show_end >= now))
+
+    if kwargs.get('starting_within_days'):
+        starting_within_seconds = kwargs['starting_within_days'] * 24 * 60 * 60
+        movies = movies.filter(Movie.show_start != None)\
+            .filter(Movie.show_start <= now + starting_within_seconds)
+
+    return movies.all()
 
 
 api.add_resource(MovieListAPI, '/movies')
