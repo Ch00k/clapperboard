@@ -94,9 +94,8 @@ def write_movie_data():
                     # add only those that are not there yet
                     log.info('Movie show times already exist in db, updating')
                     for show_time in movie_showtimes_data:
-                        if not ShowTime.query.filter_by(id=show_time[0]):
+                        if not show_time[0] in [st.id for st in record.show_times]:
                             record.show_times.append(ShowTime(*show_time))
-
                 else:
                     # If no show times for a movie found add them
                     log.info('Movie show times missing, inserting')
