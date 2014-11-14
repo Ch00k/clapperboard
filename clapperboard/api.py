@@ -1,15 +1,11 @@
 import copy
-import datetime
 import os
-import time
 
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.restful import Api, Resource, fields, marshal, abort, reqparse
 from flask.ext.restful.fields import get_value, Nested
 from flask.ext.cors import CORS
-
-from sqlalchemy import or_
 
 from helpers import get_movie_imdb_data
 
@@ -146,6 +142,7 @@ class MovieListAPI(Resource):
         m_fields = copy.copy(movie_fields)
 
         # TODO: Return empty object if movie.imdb_data = None
+        print type(args['imdb_data'])
         if args['imdb_data']:
             m_fields['imdb_data'] = NestedWithEmpty(imdb_data_fields, allow_empty=True)
         if args['show_times']:
@@ -218,18 +215,18 @@ def get_movies(**kwargs):
                    later than starting_within_days value
     :return:
     """
-    now = int(time.time())
-
     all_movies = Movie.query
     movies = all_movies
 
     if kwargs.get('current'):
-        movies = movies.filter(or_(Movie.show_end == None, Movie.show_end >= now))
+        movies = movies.filter(db.or_(Movie.show_end == None,
+                                      Movie.show_end >= db.func.current_timestamp()))
 
     if kwargs.get('starting_within_days'):
         starting_within_seconds = kwargs['starting_within_days'] * 24 * 60 * 60
         movies = movies.filter(Movie.show_start != None)\
-            .filter(Movie.show_start <= now + starting_within_seconds)
+            .filter(Movie.show_start <=
+                    db.func.current_timestamp() + starting_within_seconds)
 
     return movies.all()
 
@@ -240,3 +237,5 @@ api.add_resource(MovieAPI, '/movies/<int:movie_id>')
 
 if __name__ == '__main__':
     app.run()
+
+#https://cabinet.planeta-kino.com.ua/hall-scheme/?theater=pk-lvov&showtime=72839
