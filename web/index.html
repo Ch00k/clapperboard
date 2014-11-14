@@ -17,6 +17,15 @@
     </div>
 
     <div>
+        <ul class="list-inline text-right">
+            <li class="bg-success">IMAX</li>
+            <li class="bg-info">IMAX 3D</li>
+            <li class="bg-warning">3D</li>
+            <li class="bg-danger">2D</li>
+        </ul>
+    </div>
+
+    <div>
         <table class="table table-striped table-bordered">
             <thead>
                 <tr>
@@ -37,7 +46,10 @@
                     <td>
                         <ul class="list-inline small">
                             <li ng-repeat="st in item.show_times">
-                                <a href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM.yyyy, HH:mm'}}</a>
+                                <a ng-if="st.technology == 'imax'" class="bg-success" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
+                                <a ng-if="st.technology == 'imax3d'" class="bg-info" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
+                                <a ng-if="st.technology == '3d'" class="bg-warning" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
+                                <a ng-if="st.technology == '2d'" class="bg-danger" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
                             </li>
                         </ul>
                     </td>
