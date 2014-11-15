@@ -187,19 +187,16 @@ class MovieAPI(Resource):
     def put(self, movie_id):
         self.parser.add_argument('X-Auth-Token', type=str, location='headers',
                                  required=True)
+        self.parser.add_argument('movie', type=movie_data_type, location='json',
+                                 required=True)
         args = self.parser.parse_args()
 
         if not args['X-Auth-Token'] == app.config['AUTH_TOKEN']:
             abort(401)
 
         movie = Movie.query.filter_by(id=movie_id).first()
-
         if not movie:
             abort(404, message='Movie {} not found'.format(movie_id))
-
-        self.parser.add_argument('movie', type=movie_data_type, location='json',
-                                 required=True)
-        args = self.parser.parse_args()
 
         imdb_id = args['movie']['imdb_data']['id']
         imdb_movie = get_movie_imdb_data(id=imdb_id)
