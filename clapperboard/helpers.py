@@ -8,13 +8,12 @@ import unicodedata
 import xmltodict
 
 
-def get_pk_data(xml_url):
+def get_pk_data(url):
     """
     Get movies and showtimes data from PK website.
 
     :return: Dictionary containing all PK movies and showtimes data
     """
-    url = xml_url
     data = urllib2.urlopen(url).read()
     data_dict = xmltodict.parse(data)
 
