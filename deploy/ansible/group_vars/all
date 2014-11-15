@@ -21,3 +21,5 @@ debug: false
 sched_time_hours: 2
 
 cors_origins: "*"
+
+auth_token: "123qwe"

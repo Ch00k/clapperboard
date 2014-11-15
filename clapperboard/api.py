@@ -13,7 +13,7 @@ from helpers import get_movie_imdb_data
 
 app = Flask(__name__)
 api = Api(app)
-app.config.from_object('clapperboard.config.api')
+app.config.from_object('config.api')
 if os.environ.get('CB_API_SETTINGS'):
     app.config.from_envvar('CB_API_SETTINGS')
 db = SQLAlchemy(app)
@@ -27,6 +27,7 @@ class Movie(db.Model):
     show_end = db.Column(db.Integer)
     url = db.Column(db.String(255))
     imdb_data = db.relationship('IMDBData', uselist=False)
+    # TODO: Make this a dynamic relationship
     show_times = db.relationship('ShowTime')
 
     def __init__(self, id, title, show_start, show_end, url):
@@ -170,6 +171,7 @@ class MovieAPI(Resource):
 
         self.parser.add_argument('imdb_data', type=str, location='args')
         self.parser.add_argument('show_times', type=str, location='args')
+
         args = self.parser.parse_args()
 
         m_fields = copy.copy(movie_fields)
@@ -183,6 +185,13 @@ class MovieAPI(Resource):
 
     # TODO: Make this call asynchronous
     def put(self, movie_id):
+        self.parser.add_argument('X-Auth-Token', type=str, location='headers',
+                                 required=True)
+        args = self.parser.parse_args()
+
+        if not args['X-Auth-Token'] == app.config['AUTH_TOKEN']:
+            abort(401)
+
         movie = Movie.query.filter_by(id=movie_id).first()
 
         if not movie:
