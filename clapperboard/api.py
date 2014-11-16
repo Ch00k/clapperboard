@@ -22,23 +22,23 @@ cors = CORS(app)
 
 class Movie(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=False)
-    title = db.Column(db.String(255))
+    ua_title = db.Column(db.Unicode(255))
+    url_title = db.Column(db.String(255))
     show_start = db.Column(db.Integer)
     show_end = db.Column(db.Integer)
-    url = db.Column(db.String(255))
     imdb_data = db.relationship('IMDBData', uselist=False)
     # TODO: Make this a dynamic relationship
     show_times = db.relationship('ShowTime')
 
-    def __init__(self, id, title, show_start, show_end, url):
+    def __init__(self, id, ua_title, url_title, show_start, show_end):
         self.id = id
-        self.title = title
+        self.ua_title = ua_title
+        self.url_title = url_title
         self.show_start = show_start
         self.show_end = show_end
-        self.url = url
 
     def __repr__(self):
-        return '<Movie %r, %r>' % (self.id, self.title)
+        return '<Movie %r, %r>' % (self.id, self.url_title)
 
 
 class IMDBData(db.Model):
@@ -59,22 +59,22 @@ class IMDBData(db.Model):
 
 class ShowTime(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=False)
-    date_time = db.Column(db.Integer)
+    theatre_id = db.Column(db.String(255))
     hall_id = db.Column(db.Integer)
     technology = db.Column(db.String(8))
-    order_url = db.Column(db.String(255))
+    date_time = db.Column(db.Integer)
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
 
-    def __init__(self, id, date_time, hall_id, technology, order_url, movie_id):
+    def __init__(self, id, theatre_id, hall_id, technology, date_time, movie_id):
         self.id = id
-        self.date_time = date_time
+        self.theatre_id = theatre_id
         self.hall_id = hall_id
         self.technology = technology
-        self.order_url = order_url
+        self.date_time = date_time
         self.movie_id = movie_id
 
     def __repr__(self):
-        return '<ShowTime %r, %r>' % (self.id, self.date_time)
+        return '<ShowTime %r>' % self.id
 
 
 imdb_data_fields = {
@@ -86,19 +86,19 @@ imdb_data_fields = {
 
 show_time_fields = {
     'id': fields.Integer,
-    'date_time': fields.Integer,
+    'theatre_id': fields.String,
     'hall_id': fields.Integer,
     'technology': fields.String,
+    'date_time': fields.Integer,
     'order_url': fields.String
 }
 
 
 movie_fields = {
     'id': fields.Integer,
-    'title': fields.String,
+    'ua_title': fields.String,
     'show_start': fields.Integer(default=None),
-    'show_end': fields.Integer(default=None),
-    'url': fields.String,
+    'show_end': fields.Integer(default=None)
 }
 
 
@@ -135,6 +135,9 @@ class MovieListAPI(Resource):
         super(MovieListAPI, self).__init__()
 
     def get(self):
+        # self.parser.add_argument('theater', type=str, location='args', required=True,
+        #                          choices=['kiev', 'kharkov', 'lvov', 'odessa',
+        #                                   'odessa2', 'sumy', 'yalta'])
         self.parser.add_argument('imdb_data', type=str, location='args')
         #self.parser.add_argument('current', type=str, location='args')
         self.parser.add_argument('show_times', type=str, location='args')

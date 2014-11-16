@@ -8,20 +8,68 @@ import unicodedata
 import xmltodict
 
 
-def get_pk_data(url):
+def get_pk_data():
     """
     Get movies and showtimes data from PK website.
 
     :return: Dictionary containing all PK movies and showtimes data
     """
-    data = urllib2.urlopen(url).read()
-    data_dict = xmltodict.parse(data)
+    opener = urllib2.build_opener()
+    # Tweak the server to think we are in neither of its known locations
+    # (actually a bug on PK)
+    opener.addheaders.append(('Cookie', 'gdc=london'))
 
-    return data_dict['planeta-kino']
+    # Empty string is Kiev
+    theatres = ['', 'kharkov', 'lvov', 'odessa', 'odessa2', 'sumy', 'yalta']
 
+    movies = []
+    showtimes = []
+    seen_movies = set()
 
-def extract_title_from_pk_url(url):
-    return url.split('/')[-2].replace('-', ' ')
+    order_url_pattern = \
+        '^https:\/\/cabinet.planeta-kino.com.ua\/hall\/\?show_id=(\d+)&.*$'
+
+    for theatre in theatres:
+        url = 'http://planeta-kino.com.ua/{}/showtimes/xml/'.format(theatre)
+        xml_data = opener.open(url).read()
+        data_dict = xmltodict.parse(xml_data, dict_constructor=dict)
+        location_data = data_dict['planeta-kino']
+        movies_data = location_data['movies']['movie']
+        showtimes_data = location_data['showtimes']['day']
+
+        for pk_movie in movies_data:
+            if pk_movie['@id'] not in seen_movies:
+                movie = {
+                    'id': int(pk_movie['@id']),
+                    'ua_title': pk_movie['title'],
+                    'url_title': pk_movie['@url'].split('/')[-2],
+                    'show_start': datetime_string_to_timestamp(pk_movie['dt-start']),
+                    'show_end': datetime_string_to_timestamp(pk_movie['dt-end']),
+                }
+                movies.append(movie)
+                seen_movies.add(pk_movie['@id'])
+        for day in showtimes_data:
+            for pk_showtime in day['show']:
+                if pk_showtime['@order-url']:
+                    showtime = {
+                        'id': int(re.match(order_url_pattern,
+                                           pk_showtime['@order-url']).group(1)),
+                        'theatre_id': pk_showtime['@theatre-id'].split('-')[-1],
+                        'hall_id': int(pk_showtime['@hall-id']),
+                        'date_time': datetime_string_to_timestamp(
+                            pk_showtime['@full-date']),
+                        'movie_id': int(pk_showtime['@movie-id']),
+                        'technology': pk_showtime['@technology']
+                    }
+                    showtimes.append(showtime)
+
+    for movie in movies:
+        movie['showtimes'] = []
+        for showtime in showtimes:
+            if showtime['movie_id'] == movie['id']:
+                movie['showtimes'].append(showtime)
+
+    return movies
 
 
 def datetime_string_to_timestamp(str):
@@ -34,34 +82,9 @@ def datetime_string_to_timestamp(str):
     if str:
         # A dull check whether the string contains time
         pattern = '%Y-%m-%d %H:%M:%S' if ':' in str else '%Y-%m-%d'
-        return time.mktime(datetime.datetime.strptime(str, pattern).timetuple())
+        return int(time.mktime(datetime.datetime.strptime(str, pattern).timetuple()))
     else:
         return None
-
-
-def get_movie_showtimes_data(showtimes_struct, movie_id):
-    """
-    Get list of showtimes for a specific PK movie.
-
-    :param showtimes_struct: Dictionary with showtimes data
-    :param movie_id: PK movie id
-    :return: List of showtime objects
-    """
-    order_url_pattern = \
-        '^https:\/\/cabinet.planeta-kino.com.ua\/hall\/\?show_id=(\d+)&.*$'
-    movie_show_times = []
-    for show_time in showtimes_struct:
-        for show in show_time['show']:
-            if show['@movie-id'] == str(movie_id):
-                if show['@order-url']:
-                    show_time_id = \
-                        re.match(order_url_pattern, show['@order-url']).group(1)
-                    show_time_id = int(show_time_id)
-                    show_ts = datetime_string_to_timestamp(show['@full-date'])
-                    movie_show_times.append((show_time_id, show_ts,
-                                             show['@hall-id'], show['@technology'],
-                                             show['@order-url'], movie_id))
-    return movie_show_times
 
 
 def get_movie_imdb_data(**kwargs):
