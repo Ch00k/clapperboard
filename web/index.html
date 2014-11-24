@@ -47,7 +47,7 @@
                         <ul class="list-inline small">
                             <li ng-repeat="st in item.show_times">
                                 <a ng-if="st.technology == 'imax'" class="bg-success" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
-                                <a ng-if="st.technology == 'imax3d'" class="bg-info" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
+                                <a ng-if="st.technology == 'imax-3d'" class="bg-info" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
                                 <a ng-if="st.technology == '3d'" class="bg-warning" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
                                 <a ng-if="st.technology == '2d'" class="bg-danger" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
                             </li>
