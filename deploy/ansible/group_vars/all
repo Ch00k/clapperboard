@@ -17,7 +17,7 @@ sqlalchemy_db_uri: "mysql://clap_user:clap_user_pw@localhost/clap_db_v2?unix_soc
 amqp_uri: "amqp://"
 pk_fetch_frequency: 30
 
-log_dir = "/var/log/clapperboard_v2"
+log_dir: "/var/log/clapperboard_v2"
 beat_log_file: "{{ log_dir }}/beat.log"
 write_movie_data_worker_log_file: "{{ log_dir }}/worker_write_movie_data.log"
 

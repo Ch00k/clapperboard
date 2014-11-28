@@ -21,10 +21,10 @@ setup(
         'flask-migrate',
         'flask-restful',
         'flask-sqlalchemy',
+        'webargs',
         'requests',
         'MySQL-python',
         'xmltodict',
-        'apscheduler',
         'IMDbPY'
     ]
 )

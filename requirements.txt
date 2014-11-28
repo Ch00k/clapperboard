@@ -8,3 +8,4 @@ MySQL-python
 xmltodict
 IMDbPY
 celery
+webargs
