@@ -22,6 +22,7 @@
             <li class="bg-info">IMAX 3D</li>
             <li class="bg-warning">3D</li>
             <li class="bg-danger">2D</li>
+            <li class="bg-primary">4DX</li>
         </ul>
     </div>
 
@@ -38,7 +39,7 @@
             </thead>
             <tbody>
                 <tr ng-repeat="item in main.items | orderBy : 'imdb_data.rating' : true">
-                    <td><a href="{{item.url}}">{{item.title}}</a></td>
+                    <td><a href="http://planeta-kino.com.ua/lvov/movies/{{item.url_title}}/">{{item.imdb_data.title}}</a></td>
                     <td><a href="http://www.imdb.com/title/tt{{item.imdb_data.id}}">{{item.imdb_data.rating}}</a></td>
                     <td>{{item.show_start * 1000 | date : 'dd.MM.yyyy'}}</td>
                     <td ng-if="item.show_end !== null">{{item.show_end * 1000 | date : 'dd.MM.yyyy'}}</td>
@@ -46,10 +47,11 @@
                     <td>
                         <ul class="list-inline small">
                             <li ng-repeat="st in item.show_times">
-                                <a ng-if="st.technology == 'imax'" class="bg-success" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
-                                <a ng-if="st.technology == 'imax3d'" class="bg-info" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
-                                <a ng-if="st.technology == '3d'" class="bg-warning" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
-                                <a ng-if="st.technology == '2d'" class="bg-danger" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
+                                <a ng-if="st.technology_id == 1" class="bg-danger" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
+                                <a ng-if="st.technology_id == 2" class="bg-warning" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
+                                <a ng-if="st.technology_id == 3" class="bg-success" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
+                                <a ng-if="st.technology_id == 4" class="bg-info" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
+                                <a ng-if="st.technology_id == 5" class="bg-primary" href="{{st.order_url}}">{{st.date_time * 1000 | date : 'dd.MM, HH:mm'}}</a>
                             </li>
                         </ul>
                     </td>

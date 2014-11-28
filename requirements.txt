@@ -1,12 +1,10 @@
 flask
-flask-restful
+git+https://github.com/Ch00k/flask-restful.git#egg=flask-restful
 flask-sqlalchemy
 flask-migrate
 flask-cors
+requests
 MySQL-python
 xmltodict
-apscheduler
 IMDbPY
-
-supervisor
--e git+https://github.com/benoitc/gunicorn.git#egg=gunicorn
+celery

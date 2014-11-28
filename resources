@@ -1,0 +1,15 @@
+GET /movies
+GET /movies/<id>
+PUT /movies/<id>
+GET /movies/<id>/imdb-data
+GET /movies/<id>/show-times
+
+GET /theatres
+GET /theatres/<id>
+GET /theatres/<id>/show-times
+
+GET /technologies
+GET /technologies/<id>
+
+GET /showtimes
+GET /showtimes/<id>

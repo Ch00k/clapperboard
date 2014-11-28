@@ -12,9 +12,27 @@ serverurl = unix://{{ run_dir }}/cb_supervisor.sock
 [rpcinterface:supervisor]
 supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 
-[program:cb_workers]
-command = {{ base_dir }}/{{ venv_name }}/bin/cb_workers
-environment = CB_WORKERS_SETTINGS={{ base_dir }}/workers_config.py,CB_API_SETTINGS={{ base_dir }}/api_config.py
+[program:celerybeat]
+command = {{ base_dir }}/{{ venv_name }}/bin/celery beat -A -A clapperboard.workers beat -l info --schedule {{ run_dir }}/beat.db
+user = nobody
+numprocs = 1
+stdout_logfile = {{ beat_log_file }}
+stderr_logfile = {{ beat_log_file }}
+autostart = true
+autorestart = true
+startsecs = 10
+
+[program:write_movie_data_worker]
+command = {{ base_dir }}/{{ venv_name }}/bin/celery -A clapperboard.workers worker -c 1 -l info
+user = nobody
+numprocs = 1
+stdout_logfile = {{ write_movie_data_worker_log_file }}
+stderr_logfile = {{ write_movie_data_worker_log_file }}
+autostart = true
+autorestart = true
+startsecs = 10
+stopwaitsecs = 600
+killasgroup = true
 
 [program:cb_api]
 command = {{ base_dir }}/{{ venv_name }}/bin/gunicorn clapperboard.api:app

@@ -1,5 +1,5 @@
 angular.module('Clapperboard', [])
-    .constant('ENDPOINT_URI', 'http://minuteware.net/clapperboard/')
+    .constant('ENDPOINT_URI', 'http://127.0.0.1:5000/')
     .controller('MainCtrl', function (ItemsModel) {
         var main = this;
 
@@ -14,7 +14,7 @@ angular.module('Clapperboard', [])
     })
     .service('ItemsModel', function ($http, ENDPOINT_URI) {
         var service = this,
-            path = 'movies?starting_within_days=14&imdb_data=1&show_times=1';
+            path = 'movies?starting_within_days=14&imdb_data=1&theatre_id=3';
 
         function getUrl() {
             return ENDPOINT_URI + path;
