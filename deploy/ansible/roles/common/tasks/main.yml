@@ -27,6 +27,7 @@
 - name: Seed database
   # command won't work here because it does not read env vars
   shell: chdir={{ dist_location }} CB_API_SETTINGS={{ base_dir }}/api_config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage db_seed
+  ignore_errors: yes
 
 - name: Shutdown supervisor
   command: "{{ base_dir }}/{{ venv_name }}/bin/supervisorctl -c {{ base_dir }}/cb_supervisor.conf shutdown"

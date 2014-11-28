@@ -5,6 +5,8 @@ import os
 from flask.ext.script import Manager
 from flask.ext.migrate import Migrate, MigrateCommand
 
+from sqlalchemy.exc import IntegrityError
+
 from clapperboard import app
 from clapperboard.models import db
 # TODO: try using lambdas instead of this
@@ -56,7 +58,12 @@ def db_seed():
     db.session.add_all([Technology(*tech) for tech in technologies])
     db.session.add_all([Theatre(*theatre) for theatre in theatres])
     db.session.add_all([LastFetched(*lf) for lf in last_fetched])
-    db.session.commit()
+
+    # TODO find a better way to do seed idempotently
+    try:
+        db.session.commit()
+    except IntegrityError as e:
+        raise StandardError(e.message + '\r\nPerhaps database has already been seeded')
 
 
 @manager.command
