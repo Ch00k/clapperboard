@@ -11,7 +11,7 @@ setup(
     entry_points={
         'console_scripts': [
             'cb_workers = clapperboard.workers:main',
-            'cb_manage = clapperboard.manage:main'
+            'cb_manage = manage:main'
         ]
     },
     install_requires=[
