@@ -4,6 +4,8 @@ from flask import Flask
 from flask.ext.restful import Api
 from flask.ext.cors import CORS
 
+from workers.celery import make_celery
+
 
 app = Flask(__name__)
 api = Api(app)
@@ -13,6 +15,7 @@ if os.environ.get('CB_API_SETTINGS'):
     app.config.from_envvar('CB_API_SETTINGS')
 cors = CORS(app)
 
+celery = make_celery(app)
 
 from clapperboard.resources.movie import *
 from clapperboard.resources.theatre import *

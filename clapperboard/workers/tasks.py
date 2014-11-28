@@ -11,7 +11,7 @@ from clapperboard.models.technology import Technology
 from clapperboard.models.last_fetched import LastFetched
 from clapperboard.common.utils import get_pk_data, get_movie_imdb_data
 
-from clapperboard.workers.celery import app
+from clapperboard import celery
 
 # TODO: Replace this hack with something more "humane"
 if os.environ.get('CB_WORKERS_SETTINGS'):
@@ -113,7 +113,7 @@ def _update_last_fetched(theatres_dict):
     db.session.commit()
 
 
-@app.task
+@celery.task
 def write_movie_data():
     """
     Create new or update existing movie record in database.

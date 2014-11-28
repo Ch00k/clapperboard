@@ -13,7 +13,7 @@ serverurl = unix://{{ run_dir }}/cb_supervisor.sock
 supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 
 [program:celerybeat]
-command = {{ base_dir }}/{{ venv_name }}/bin/celery beat -A -A clapperboard.workers beat -l info --schedule {{ run_dir }}/beat.db
+command = {{ base_dir }}/{{ venv_name }}/bin/celery beat -A clapperboard.workers beat -l info --schedule {{ run_dir }}/beat.db
 numprocs = 1
 stdout_logfile = {{ beat_log_file }}
 stderr_logfile = {{ beat_log_file }}
