@@ -1,7 +1,6 @@
 from celery.schedules import crontab
 from kombu import Exchange, Queue
 
-SERVER_NAME = ':{{ port }}'
 
 SQLALCHEMY_DATABASE_URI = '{{ sqlalchemy_db_uri }}'
 CORS_HEADERS = 'Content-Type'
