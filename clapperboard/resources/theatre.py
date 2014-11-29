@@ -2,6 +2,7 @@ from flask.ext.restful import Resource, marshal
 
 from clapperboard.resources.common.response_fields import THEATRE
 from clapperboard.models.theatre import Theatre
+from clapperboard.models.last_fetched import LastFetched
 from clapperboard.resources.common.errors import THEATRE_NOT_FOUND
 
 

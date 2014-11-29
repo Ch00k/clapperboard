@@ -4,11 +4,11 @@ from kombu import Exchange, Queue
 
 SQLALCHEMY_DATABASE_URI = \
     'mysql://clap_user:clap_user_pw@localhost/clap_db_v2?unix_socket=/tmp/mysql.sock'
-#SQLALCHEMY_ECHO = True
 CORS_HEADERS = 'Content-Type'
 CORS_RESOURCES = {r'/*': {'origins': '*'}}
 AUTH_TOKEN = '123qwe'
 DEBUG = True
+SQLALCHEMY_ECHO = False
 
 
 BROKER_URL = 'amqp://'
@@ -22,7 +22,7 @@ CELERY_IMPORTS = ['clapperboard.workers.tasks']
 
 CELERY_TASK_RESULT_EXPIRES = 3600
 
-PK_FETCH_FREQUENCY_MINUTES = 30
+PK_FETCH_FREQUENCY_MINUTES = 1
 CELERYBEAT_SCHEDULE = {
     'pk_fetch_periodic': {
         'task': 'clapperboard.workers.tasks.write_movie_data',

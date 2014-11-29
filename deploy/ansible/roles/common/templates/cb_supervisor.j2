@@ -13,7 +13,7 @@ serverurl = unix://{{ run_dir }}/cb_supervisor.sock
 supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 
 [program:celerybeat]
-command = {{ base_dir }}/{{ venv_name }}/bin/celery beat -A clapperboard.workers beat -l info --schedule {{ run_dir }}/beat.db
+command = {{ base_dir }}/{{ venv_name }}/bin/celery -A clapperboard.workers beat -l info --schedule {{ run_dir }}/beat.db
 numprocs = 1
 stdout_logfile = {{ beat_log_file }}
 stderr_logfile = {{ beat_log_file }}
@@ -34,4 +34,4 @@ killasgroup = true
 
 [program:cb_api]
 command = {{ base_dir }}/{{ venv_name }}/bin/gunicorn clapperboard.api:app
-environment = CB_API_SETTINGS={{ base_dir }}/api_config.py
+environment = CLPBRD_CONFIG={{ base_dir }}/config.py

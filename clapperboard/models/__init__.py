@@ -1,6 +1,6 @@
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask.ext.migrate import Migrate
 
-from clapperboard import app
 
-
-db = SQLAlchemy(app)
+db = SQLAlchemy()
+migrate = Migrate()
