@@ -34,24 +34,6 @@
 - name: Start supervisor
   command: "{{ base_dir }}/{{ venv_name }}/bin/supervisord -c {{ base_dir }}/cb_supervisor.conf"
 
-- name: Run worker to fetch initial data from PK
-  # command won't work here because it does not read env vars
-  shell: chdir={{ dist_location }} CLPBRD_CONFIG={{ base_dir }}/config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage fetch
-
-# - name: Remove web direcory
-#   command: rm -rf {{ web_location }}
-
-# - name: Copy web
-#   command: cp -R {{ dist_location }}/web {{ web_location }}
-
-# - name: Install AngularJS
-#   command: chdir={{ web_location }} ~/node_modules/.bin/bower install angular
-
-# - name: Install Bootstrap
-#   command: chdir={{ web_location }} ~/node_modules/.bin/bower install bootstrap
-
-# - name: Restart supervisor jobs
-#   supervisorctl: name={{ item }} state=stopped config={{ base_dir }}/cb_supervisor.conf supervisorctl_path={{ base_dir }}/{{ venv_name }}/bin/supervisorctl
-#   with_items:
-#     - cb_api
-#     - cb_workers
+# - name: Run worker to fetch initial data from PK
+#   # command won't work here because it does not read env vars
+#   shell: chdir={{ dist_location }} CLPBRD_CONFIG={{ base_dir }}/config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage fetch

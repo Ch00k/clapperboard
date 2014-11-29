@@ -1,7 +1,7 @@
 ansible_python_interpreter: /usr/bin/python2
 
 git_repo: "git@github.com:Ch00k/clapperboard.git"
-git_tag: "celery_factory"
+git_tag: "cb_v2"
 
 base_dir: "/opt/clapperboard_v2"
 run_dir: "{{ base_dir }}/run"
