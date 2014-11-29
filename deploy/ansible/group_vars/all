@@ -12,6 +12,8 @@ supervisor_conf: "{{ base_dir }}/cb_supervisor.conf"
 
 config_file: "{{ base_dir }}/config.py"
 
+port: "8001"
+
 sqlalchemy_db_uri: "mysql://clap_user:clap_user_pw@localhost/clap_db_v2?unix_socket=/var/run/mysqld/mysqld.sock"
 amqp_uri: "amqp://"
 pk_fetch_frequency: 30

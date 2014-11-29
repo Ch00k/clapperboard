@@ -14,6 +14,7 @@ supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 
 [program:celerybeat]
 command = {{ base_dir }}/{{ venv_name }}/bin/celery -A clapperboard.workers beat -l info --schedule {{ run_dir }}/beat.db
+environment = CLPBRD_CONFIG={{ base_dir }}/config.py
 numprocs = 1
 stdout_logfile = {{ beat_log_file }}
 stderr_logfile = {{ beat_log_file }}
@@ -23,6 +24,7 @@ startsecs = 10
 
 [program:write_movie_data_worker]
 command = {{ base_dir }}/{{ venv_name }}/bin/celery -A clapperboard.workers worker -c 1 -l info
+environment = CLPBRD_CONFIG={{ base_dir }}/config.py
 numprocs = 1
 stdout_logfile = {{ write_movie_data_worker_log_file }}
 stderr_logfile = {{ write_movie_data_worker_log_file }}
