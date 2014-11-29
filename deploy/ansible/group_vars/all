@@ -21,6 +21,7 @@ pk_fetch_frequency: 30
 log_dir: "/var/log/clapperboard_v2"
 beat_log_file: "{{ log_dir }}/beat.log"
 write_movie_data_worker_log_file: "{{ log_dir }}/worker-write_movie_data.log"
+api_log_file: "{{ log_dir }}/api.log"
 
 debug: false
 sql_dedug: false
