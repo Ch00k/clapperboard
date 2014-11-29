@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import os
 
-from flask.ext.script import Manager
-from flask.ext.migrate import Migrate, MigrateCommand
+from flask.ext.migrate import MigrateCommand
 
 from sqlalchemy.exc import IntegrityError
 
-from clapperboard import app
+from clapperboard.manager import manager
+
 from clapperboard.models import db
 # TODO: try using lambdas instead of this
-from clapperboard.models.show_time import ShowTime
+#from clapperboard.models.show_time import ShowTime
 from clapperboard.models.last_fetched import LastFetched
 from clapperboard.models.technology import Technology
 from clapperboard.models.theatre import Theatre
@@ -18,12 +17,6 @@ from clapperboard.models.theatre import Theatre
 from clapperboard.workers.tasks import write_movie_data
 
 
-app.config.from_object('clapperboard.config.api')
-if os.environ.get('CB_API_SETTINGS'):
-    app.config.from_envvar('CB_API_SETTINGS')
-
-migrate = Migrate(app, db)
-manager = Manager(app)
 manager.add_command('db', MigrateCommand)
 
 

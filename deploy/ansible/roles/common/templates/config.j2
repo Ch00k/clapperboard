@@ -2,6 +2,14 @@ from celery.schedules import crontab
 from kombu import Exchange, Queue
 
 
+SQLALCHEMY_DATABASE_URI = '{{ sqlalchemy_db_uri }}'
+CORS_HEADERS = 'Content-Type'
+CORS_RESOURCES = {r'/*': {'origins': '{{ cors_origins }}'}}
+AUTH_TOKEN = '{{ auth_token }}'
+DEBUG = {{ debug }}
+SQLALCHEMY_ECHO = {{ sql_dedug }}
+
+
 BROKER_URL = '{{ amqp_uri }}'
 CELERY_RESULT_BACKEND = '{{ amqp_uri }}'
 

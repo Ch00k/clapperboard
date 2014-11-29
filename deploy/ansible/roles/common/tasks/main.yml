@@ -17,16 +17,15 @@
 - name: Install application configuration
   template: src={{ item }}.j2 dest={{ base_dir }}/{{ item }}.py
   with_items:
-    - api_config
-    - workers_config
+    - config
 
 - name: Migrate database
   # command won't work here because it does not read env vars
-  shell: chdir={{ dist_location }} CB_API_SETTINGS={{ base_dir }}/api_config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage db upgrade
+  shell: chdir={{ dist_location }} CLPBRD_CONFIG={{ base_dir }}/config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage db upgrade
 
 - name: Seed database
   # command won't work here because it does not read env vars
-  shell: chdir={{ dist_location }} CB_API_SETTINGS={{ base_dir }}/api_config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage db_seed
+  shell: chdir={{ dist_location }} CLPBRD_CONFIG={{ base_dir }}/config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage db_seed
   ignore_errors: yes
 
 - name: Shutdown supervisor
@@ -37,7 +36,7 @@
 
 - name: Run worker to fetch initial data from PK
   # command won't work here because it does not read env vars
-  shell: chdir={{ dist_location }} CB_API_SETTINGS={{ base_dir }}/api_config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage fetch
+  shell: chdir={{ dist_location }} CLPBRD_CONFIG={{ base_dir }}/config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage fetch
 
 # - name: Remove web direcory
 #   command: rm -rf {{ web_location }}

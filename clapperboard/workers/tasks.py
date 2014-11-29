@@ -1,6 +1,5 @@
 from copy import copy
 import logging
-import os
 
 from clapperboard.models import db
 from clapperboard.models.movie import Movie
@@ -11,12 +10,8 @@ from clapperboard.models.technology import Technology
 from clapperboard.models.last_fetched import LastFetched
 from clapperboard.common.utils import get_pk_data, get_movie_imdb_data
 
-from clapperboard.workers.celery import app
+from clapperboard import celery_app
 
-# TODO: Replace this hack with something more "humane"
-if os.environ.get('CB_WORKERS_SETTINGS'):
-    path = os.environ['CB_WORKERS_SETTINGS']
-    execfile(path)
 
 log = logging.getLogger(__name__)
 
@@ -113,7 +108,7 @@ def _update_last_fetched(theatres_dict):
     db.session.commit()
 
 
-@app.task
+@celery_app.task
 def write_movie_data():
     """
     Create new or update existing movie record in database.

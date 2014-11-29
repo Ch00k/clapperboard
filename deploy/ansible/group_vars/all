@@ -1,7 +1,7 @@
 ansible_python_interpreter: /usr/bin/python2
 
 git_repo: "git@github.com:Ch00k/clapperboard.git"
-git_tag: "cb_v2"
+git_tag: "celery_factory"
 
 base_dir: "/opt/clapperboard_v2"
 run_dir: "{{ base_dir }}/run"
@@ -10,8 +10,9 @@ web_location: "{{ base_dir }}/cb_web"
 venv_name: "cb_venv"
 supervisor_conf: "{{ base_dir }}/cb_supervisor.conf"
 
-api_conf: "{{ base_dir }}/api_config.py"
-workers_conf: "{{ base_dir }}/workers_config.py"
+config_file: "{{ base_dir }}/config.py"
+
+port: "8001"
 
 sqlalchemy_db_uri: "mysql://clap_user:clap_user_pw@localhost/clap_db_v2?unix_socket=/var/run/mysqld/mysqld.sock"
 amqp_uri: "amqp://"
@@ -19,11 +20,11 @@ pk_fetch_frequency: 30
 
 log_dir: "/var/log/clapperboard_v2"
 beat_log_file: "{{ log_dir }}/beat.log"
-write_movie_data_worker_log_file: "{{ log_dir }}/worker_write_movie_data.log"
+write_movie_data_worker_log_file: "{{ log_dir }}/worker-write_movie_data.log"
+api_log_file: "{{ log_dir }}/api.log"
 
 debug: false
 sql_dedug: false
-sched_time_hours: 2
 
 cors_origins: "*"
 

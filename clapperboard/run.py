@@ -1,3 +1,4 @@
-from clapperboard import app
+from clapperboard import flask_app
 
-app.run()
+
+flask_app.run()
