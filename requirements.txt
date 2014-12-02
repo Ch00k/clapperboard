@@ -8,4 +8,4 @@ MySQL-python
 xmltodict
 IMDbPY
 celery
-webargs
+git+https://github.com/sloria/webargs.git#webargs

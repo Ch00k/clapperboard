@@ -1,10 +1,15 @@
-from flask.ext.restful import Api
-from flask.ext.cors import CORS
+from flask.ext.restful import Api, abort
 from flask.ext.restful.representations.json import settings as json_settings
 
-from clapperboard.resources.movie import *
-from clapperboard.resources.theatre import *
-from clapperboard.resources.technology import *
+from flask.ext.cors import CORS
+
+from webargs.flaskparser import parser
+
+from clapperboard.resources.movie import MovieAPI, MovieListAPI, MovieIMDBDataAPI, \
+    MovieShowTimesAPI
+from clapperboard.resources.theatre import TheatreAPI, TheatreListAPI
+from clapperboard.resources.technology import TechnologyAPI, TechnologyListAPI
+
 
 api = Api()
 cors = CORS()
@@ -19,3 +24,15 @@ api.add_resource(TechnologyListAPI, '/technologies')
 api.add_resource(TechnologyAPI, '/technologies/<int:technology_id>')
 
 json_settings['indent'] = 4
+
+
+@parser.error_handler
+def handle_request_parsing_error(err):
+    """
+    webargs error handler that uses Flask-RESTful's abort function to return
+    a JSON error response to the client.
+    """
+    code, msg = (
+        getattr(err, 'status_code', 400), getattr(err, 'message', 'Invalid Request')
+    )
+    abort(code, message=msg)
