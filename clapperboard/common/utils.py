@@ -36,7 +36,10 @@ def get_pk_data(theatres):
 
     for theatre in theatres:
         url = 'http://planeta-kino.com.ua/{}/showtimes/xml/'.format(theatre['url_code'])
-        resp = requests.get(url, cookies=cookies)
+        try:
+            resp = requests.get(url, cookies=cookies)
+        except requests.ConnectionError as error:
+            log.error(error)
         last_modified = _rfc822_string_to_utc_datetime(resp.headers['Last-Modified'])
 
         if theatre['last_fetched'] and theatre['last_fetched'] >= last_modified:
