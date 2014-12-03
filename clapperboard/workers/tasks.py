@@ -109,7 +109,7 @@ def _update_last_fetched(theatres_dict):
 
 
 @celery_app.task
-def write_movie_data():
+def write_movie_data(force=False):
     """
     Create new or update existing movie record in database.
 
@@ -122,7 +122,7 @@ def write_movie_data():
         last_fetched=th.last_fetched.date_time
     ) for th in Theatre.query.all()]
 
-    movies_data, theatres = get_pk_data(theatres_dict)
+    movies_data, theatres = get_pk_data(theatres_dict, force=force)
     if not movies_data:
         _update_last_fetched(theatres)
         log.info('No updated movie data found')

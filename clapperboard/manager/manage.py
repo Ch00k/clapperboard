@@ -60,12 +60,13 @@ def db_seed():
 
 
 @manager.command
-def fetch():
+def fetch(force=False):
     """
     Run celery task forcefully to populate the database.
+    :param: force: Forcefully get all data regardless of Last-Modified header value
     """
-    write_movie_data.apply_async(queue='fetch_pk_data',
-                                 routing_key='fetch_pk_data')
+    write_movie_data.s(force=force).apply_async(queue='fetch_pk_data',
+                                                routing_key='fetch_pk_data')
 
 
 def main():

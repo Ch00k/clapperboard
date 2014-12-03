@@ -15,11 +15,12 @@ log = logging.getLogger(__name__)
 LIST_SEPARATOR = ', '
 
 
-def get_pk_data(theatres):
+def get_pk_data(theatres, force=False):
     """
     Get movies and showtimes data from PK website.
 
     :param: theatres: List of dictionaries with theatre url codes and last fetched times
+    :param: force: Forcefully get all data regardless of Last-Modified header value
     :return: Dictionary containing PK movies and showtimes data
     """
 
@@ -43,7 +44,8 @@ def get_pk_data(theatres):
             log.error(error)
         last_modified = _rfc822_string_to_utc_datetime(resp.headers['Last-Modified'])
 
-        if theatre['last_fetched'] and theatre['last_fetched'] >= last_modified:
+        if (theatre['last_fetched'] and theatre['last_fetched'] >= last_modified
+                and not force):
             continue
 
         xml_data = resp.text
