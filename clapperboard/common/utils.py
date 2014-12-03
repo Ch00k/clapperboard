@@ -52,6 +52,10 @@ def get_pk_data(theatres):
         movies_data = location_data['movies']['movie']
         showtimes_data = location_data['showtimes']['day']
 
+        # TODO: There must be an option to avoid this in xmltodict
+        if not isinstance(showtimes_data, list):
+            showtimes_data = [showtimes_data]
+
         for pk_movie in movies_data:
             if pk_movie['@id'] not in seen_movies:
                 movie = dict(
