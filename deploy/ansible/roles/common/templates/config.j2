@@ -13,6 +13,7 @@ SQLALCHEMY_ECHO = {{ sql_dedug }}
 BROKER_URL = '{{ amqp_uri }}'
 CELERY_RESULT_BACKEND = '{{ amqp_uri }}'
 
+CELERY_IGNORE_RESULT = True
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
