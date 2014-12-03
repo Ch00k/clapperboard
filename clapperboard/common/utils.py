@@ -44,9 +44,9 @@ def get_pk_data(theatres, force=False):
             log.error(error)
         last_modified = _rfc822_string_to_utc_datetime(resp.headers['Last-Modified'])
 
-        if (theatre['last_fetched'] and theatre['last_fetched'] >= last_modified
-                and not force):
-            continue
+        if not force:
+            if theatre['last_fetched'] and theatre['last_fetched'] >= last_modified:
+                continue
 
         xml_data = resp.text
         data_dict = xmltodict.parse(xml_data, dict_constructor=dict)

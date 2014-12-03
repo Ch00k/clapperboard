@@ -23,7 +23,7 @@ CELERY_IMPORTS = ['clapperboard.workers.tasks']
 
 CELERY_TASK_RESULT_EXPIRES = 3600
 
-PK_FETCH_FREQUENCY_MINUTES = 1
+PK_FETCH_FREQUENCY_MINUTES = 30
 CELERYBEAT_SCHEDULE = {
     'pk_fetch_periodic': {
         'task': 'clapperboard.workers.tasks.write_movie_data',

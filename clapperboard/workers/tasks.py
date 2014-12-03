@@ -88,6 +88,8 @@ def _update_movie_record_showtimes_data(record, showtimes_data):
             show_time_dict = _compile_st_dict(show_time)
             record_show_times.append(ShowTime(**show_time_dict))
 
+    record.show_times = record_show_times
+
 
 # TODO: There must be a more efficient way to do that
 def _compile_st_dict(st_dict):
