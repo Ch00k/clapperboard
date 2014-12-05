@@ -1,5 +1,7 @@
 from flask.ext.restful import Resource, marshal_with, marshal
 
+
+from flask import jsonify
 from webargs import Arg, flaskparser
 from webargs.flaskparser import use_args
 
@@ -14,7 +16,8 @@ from clapperboard.resources.common import marshal_with_key
 from clapperboard.resources.common.response_fields import (
     MOVIE,
     IMDB_DATA,
-    SHOW_TIME
+    SHOW_TIME,
+    MovieSchema
 )
 from clapperboard.resources.common.errors import MOVIE_NOT_FOUND
 from clapperboard.resources.common.data_types import imdb_data_data_type
@@ -26,20 +29,27 @@ class MovieListAPI(Resource):
     def __init__(self):
         super(MovieListAPI, self).__init__()
 
-    @marshal_with(MOVIE, envelope='movies')
+    #@marshal_with(MOVIE, envelope='movies')
     def get(self):
-        return Movie.query.all()
+        schema = MovieSchema(many=True)
+        movies = Movie.query.all()
+        res = schema.dump(movies)
+        print res
+        return res.data
 
 
 class MovieAPI(Resource):
     def __init__(self):
         super(MovieAPI, self).__init__()
 
-    @marshal_with(MOVIE, envelope='movie')
+    #@marshal_with(MOVIE, envelope='movie')
     def get(self, movie_id):
-        return Movie.query.get_or_abort(
+        movie = Movie.query.get_or_abort(
             movie_id, error_msg=MOVIE_NOT_FOUND.format(movie_id)
         )
+        schema = MovieSchema()
+        res = schema.dump(movie)
+        return res.data
 
 
 imdb_data_json = {'imdb_data': Arg(dict, required=True)}

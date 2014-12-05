@@ -50,8 +50,9 @@ def get_pk_data(theatres, force=False):
             log.error('Could not fetch data for {}. '
                       'Skipping the whole run'.format(theatre['en_name']))
             return
-        last_modified = \
-            _rfc822_string_to_utc_datetime(resp.headers['Last-Modified'])
+        last_modified = _rfc822_string_to_utc_datetime(
+            resp.headers['Last-Modified']
+        )
 
         if not force:
             if (theatre['last_fetched'] and
@@ -134,8 +135,10 @@ def get_movie_imdb_data(**kwargs):
                 akas = [aka.split('::')[0] for aka in imdb_movie['akas']]
                 titles += akas
             if imdb_movie.get('akas from release info'):
-                akas_from_release_info = [aka.split('::')[1] for aka in
-                                          imdb_movie['akas from release info']]
+                akas_from_release_info = [
+                    aka.split('::')[1] for
+                    aka in imdb_movie['akas from release info']
+                ]
                 titles += akas_from_release_info
 
             # Traverse the titles list and see if anything matches the pk_title
@@ -203,14 +206,14 @@ def _compile_imdb_data_dict(movie_obj):
         rating=movie_obj.get('rating')
     )
 
-    imdb_data_dict['director'] = \
-        LIST_SEPARATOR.join([director.get('name')
-                             for director in movie_obj.get('director')])
+    imdb_data_dict['director'] = LIST_SEPARATOR.join(
+        [director.get('name') for director in movie_obj.get('director')]
+    )
 
     if movie_obj.get('cast'):
-        imdb_data_dict['cast'] =\
-            LIST_SEPARATOR.join([cast.get('name')
-                                 for cast in movie_obj.get('cast')[:10]])
+        imdb_data_dict['cast'] = LIST_SEPARATOR.join(
+            [cast.get('name') for cast in movie_obj.get('cast')[:10]]
+        )
 
     else:
         imdb_data_dict['cast'] = None
@@ -241,10 +244,12 @@ def _titles_match(pk_title, imdb_title):
     :param imdb_title: Title of the movie found on IMDB
     :return: True if titles match, False otherwise
     """
-    return ((pk_title == imdb_title) or
-            ('the' + pk_title == imdb_title) or
-            (pk_title.startswith('the') and pk_title[3:] == imdb_title) or
-            (pk_title.replace('and', '') == imdb_title))
+    return (
+        (pk_title == imdb_title) or
+        ('the' + pk_title == imdb_title) or
+        (pk_title.startswith('the') and pk_title[3:] == imdb_title) or
+        (pk_title.replace('and', '') == imdb_title)
+    )
 
 
 def _normalize_title(title):

@@ -1,4 +1,5 @@
-from flask.ext.restful import fields
+#from flask.ext.restful import fields
+from marshmallow import Schema, fields
 
 
 IMDB_DATA = {
@@ -11,6 +12,14 @@ IMDB_DATA = {
     'runtime': fields.Integer,
     'rating': fields.Float,
 }
+
+
+class MovieSchema(Schema):
+    id = fields.Integer()
+    title = fields.String()
+    url_code = fields.String()
+    show_start = fields.String()
+    show_end = fields.String()
 
 
 MOVIE = {

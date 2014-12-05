@@ -1,4 +1,4 @@
 -r requirements.txt
 
 supervisor
--e git+https://github.com/benoitc/gunicorn.git#egg=gunicorn
+git+https://github.com/benoitc/gunicorn.git#egg=gunicorn

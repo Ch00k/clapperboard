@@ -70,8 +70,8 @@ def _compile_st_dict(st_dict):
 
 def _update_last_fetched(theatres_dict):
     for theatre in theatres_dict:
-        Theatre.query.get(theatre['id'])\
-            .last_fetched.date_time = theatre['last_fetched']
+        Theatre.query.get(theatre['id']).last_fetched.date_time = \
+            theatre['last_fetched']
     db.session.commit()
 
 
@@ -82,12 +82,14 @@ def write_movie_data(force=False):
 
     :return:
     """
-    theatres_dict = [dict(
-        id=th.id,
-        en_name=th.en_name,
-        url_code=th.url_code,
-        last_fetched=th.last_fetched.date_time
-    ) for th in Theatre.query.all()]
+    theatres_dict = [
+        dict(
+            id=th.id,
+            en_name=th.en_name,
+            url_code=th.url_code,
+            last_fetched=th.last_fetched.date_time
+        ) for th in Theatre.query.all()
+    ]
 
     movies_data, showtimes_data, theatres_data = get_pk_data(theatres_dict,
                                                              force=force)
