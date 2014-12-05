@@ -47,6 +47,8 @@ def get_pk_data(theatres, force=False):
             log.error(error)
             # TODO: a temporary workaround for
             # https://github.com/Ch00k/clapperboard/issues/4
+            log.error('Could not fetch data for {}. '
+                      'Skipping the whole run'.format(theatre['en_name']))
             return
         last_modified = \
             _rfc822_string_to_utc_datetime(resp.headers['Last-Modified'])
