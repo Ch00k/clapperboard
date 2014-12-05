@@ -74,21 +74,19 @@ def _insert_movie_record_showtimes_data(record, showtimes_data):
     record.show_times = show_times
 
 
+# TODO: How this function workds looks wrong. Research and optimize SQL queries here
 def _update_movie_record_showtimes_data(record, showtimes_data):
     # If the record is found in db but is not XML delete the record
-    record_show_times = record.show_times.all()
-    for st_record in record_show_times:
+    for st_record in record.show_times:
         if st_record.id not in [movie_st['id'] for movie_st in showtimes_data]:
-            record_show_times.remove(st_record)
+            record.show_times.remove(st_record)
 
     # If the movie record already has show times associated
     # add only those that are not there yet
     for show_time in showtimes_data:
-        if show_time['id'] not in [st.id for st in record_show_times]:
+        if show_time['id'] not in [st.id for st in record.show_times]:
             show_time_dict = _compile_st_dict(show_time)
-            record_show_times.append(ShowTime(**show_time_dict))
-
-    record.show_times = record_show_times
+            record.show_times.append(ShowTime(**show_time_dict))
 
 
 # TODO: There must be a more efficient way to do that

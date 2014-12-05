@@ -6,3 +6,5 @@ clapperboard.db
 .DS_Store
 bower_components
 celerybeat-schedule
+celerybeat.pid
+erl_crash.dump

@@ -5,11 +5,11 @@ from flask.ext.migrate import MigrateCommand
 
 from sqlalchemy.exc import IntegrityError
 
-from clapperboard.manager import manager
+from clapperboard import flask_app, celery_app
+from clapperboard import models
 
+from clapperboard.manager import manager
 from clapperboard.models import db
-# TODO: try using lambdas instead of this
-#from clapperboard.models.show_time import ShowTime
 from clapperboard.models.last_fetched import LastFetched
 from clapperboard.models.technology import Technology
 from clapperboard.models.theatre import Theatre
@@ -67,6 +67,11 @@ def fetch(force=False):
     """
     write_movie_data.s(force=force).apply_async(queue='fetch_pk_data',
                                                 routing_key='fetch_pk_data')
+
+
+@manager.shell
+def _make_context():
+    return dict(app=flask_app, db=db, models=models, celery=celery_app)
 
 
 def main():
