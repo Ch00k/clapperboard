@@ -27,38 +27,40 @@ def db_seed():
     Insert initial data into the database.
     """
     technologies = [
-        (1, '2d', '2D'),
-        (2, '3d', '3D'),
-        (3, 'imax', 'IMAX'),
-        (4, 'imax-3d', 'IMAX 3D'),
-        (5, '4dx', '4DX')
+        ('2d', '2D'),
+        ('3d', '3D'),
+        ('imax', 'IMAX'),
+        ('imax-3d', 'IMAX 3D'),
+        ('4dx', '4DX')
     ]
 
     theatres = [
-        (1, u'Київ', 'Kyiv', '', 'imax-kiev'),
-        (2, u'Харків', 'Kharkiv', 'kharkov', 'pk-kharkov'),
-        (3, u'Львів', 'Lviv', 'lvov', 'pk-lvov'),
-        (4, u'Одеса (Таїрова)', 'Odesa (Tairova)', 'odessa', 'pk-odessa'),
-        (5, u'Одеса (Котовського)', 'Odesa (Kotovskoho)', 'odessa2',
+        (u'Київ', 'Kyiv', '', 'imax-kiev'),
+        (u'Харків', 'Kharkiv', 'kharkov', 'pk-kharkov'),
+        (u'Львів', 'Lviv', 'lvov', 'pk-lvov'),
+        (u'Одеса (Таїрова)', 'Odesa (Tairova)', 'odessa', 'pk-odessa'),
+        (u'Одеса (Котовського)', 'Odesa (Kotovskoho)', 'odessa2',
          'pk-odessa2'),
-        (6, u'Суми', 'Sumy', 'sumy', 'pk-sumy'),
-        (7, u'Ялта', 'Yalta', 'yalta', 'pk-yalta')
-    ]
-
-    last_fetched = [
-        (i, None, i) for i in range(1, 8)
+        (u'Суми', 'Sumy', 'sumy', 'pk-sumy'),
+        (u'Ялта', 'Yalta', 'yalta', 'pk-yalta')
     ]
 
     db.session.add_all([Technology(*tech) for tech in technologies])
     db.session.add_all([Theatre(*theatre) for theatre in theatres])
+
+    last_fetched = [
+        (None, i) for i in range(1, len(theatres) + 1)
+    ]
+
     db.session.add_all([LastFetched(*lf) for lf in last_fetched])
 
     # TODO find a better way to do seed idempotently
     try:
         db.session.commit()
     except IntegrityError as e:
+        db.session.rollback()
         raise StandardError(e.message +
-                            '\r\nPerhaps database has already been seeded')
+                            '\nPerhaps database has already been seeded')
 
 
 @manager.command

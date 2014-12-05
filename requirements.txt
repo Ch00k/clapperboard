@@ -9,4 +9,4 @@ IMDbPY
 celery
 ipython
 git+https://github.com/Ch00k/flask-restful.git#egg=flask-restful
-git+https://github.com/sloria/webargs.git#egg=webargs
+git+https://github.com/Ch00k/webargs.git#egg=webargs

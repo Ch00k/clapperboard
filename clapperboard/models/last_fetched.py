@@ -9,8 +9,7 @@ class LastFetched(db.Model):
     date_time = db.Column(db.DateTime)
     theatre_id = db.Column(db.Integer, db.ForeignKey('theatre.id'))
 
-    def __init__(self, id, date_time, theatre_id):
-        self.id = id
+    def __init__(self, date_time, theatre_id):
         self.date_time = date_time
         self.theatre_id = theatre_id
 
