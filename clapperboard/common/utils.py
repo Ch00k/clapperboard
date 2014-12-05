@@ -23,7 +23,7 @@ def get_pk_data(theatres, force=False):
                       and last fetched times
     :param: force: Forcefully get all data regardless of Last-Modified
                    header value
-    :return: Dictionary containing PK movies and showtimes data
+    :return: Tuple of lists (movies, showtimes, theatres)
     """
 
     # Make the server think we are in neither of its known locations
@@ -97,12 +97,6 @@ def get_pk_data(theatres, force=False):
                     showtimes.append(showtime)
 
         theatre['last_fetched'] = last_modified
-
-    # for movie in movies:
-    #     movie['showtimes'] = []
-    #     for showtime in showtimes:
-    #         if showtime['movie_id'] == movie['id']:
-    #             movie['showtimes'].append(showtime)
 
     return movies, showtimes, theatres
 
