@@ -17,9 +17,7 @@ log = logging.getLogger(__name__)
 
 
 def _insert_movie_record(movie_data_dict):
-    movie_dict = copy(movie_data_dict)
-    movie_dict.pop('showtimes')
-    movie_record = Movie(**movie_dict)
+    movie_record = Movie(**movie_data_dict)
 
     # Set IMDB data for the movie
     imdb_query_title = movie_data_dict['url_code'].replace('-', ' ')
@@ -30,14 +28,6 @@ def _insert_movie_record(movie_data_dict):
         movie_record.imdb_data = IMDBData(**movie_imdb_data)
     else:
         log.warning('IMDB data not found')
-
-    # Set show times for the movie
-    if movie_data_dict['showtimes']:
-        show_times = []
-        for show_time in movie_data_dict['showtimes']:
-            show_time_dict = _compile_st_dict(show_time)
-            show_times.append(ShowTime(**show_time_dict))
-        movie_record.show_times = show_times
 
     db.session.add(movie_record)
 
@@ -149,7 +139,7 @@ def write_movie_data(force=False):
             deleted_showtimes += 1
     for showtime in showtimes_data:
         if not ShowTime.query.get(showtime['id']):
-            showtimes_to_add.append(ShowTime(**showtime))
+            showtimes_to_add.append(ShowTime(**_compile_st_dict(showtime)))
             new_showtimes += 1
 
     if showtimes_to_delete:
