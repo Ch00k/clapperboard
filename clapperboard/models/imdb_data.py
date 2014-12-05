@@ -15,8 +15,8 @@ class IMDBData(db.Model):
     rating = db.Column(db.Float)
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
 
-    def __init__(self, id, title, genre, country, director, cast, runtime, rating,
-                 movie_id):
+    def __init__(self, id, title, genre, country, director, cast, runtime,
+                 rating, movie_id):
         self.id = id
         self.title = title
         self.genre = genre

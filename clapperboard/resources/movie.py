@@ -11,7 +11,11 @@ from clapperboard.models.imdb_data import IMDBData
 from clapperboard.models.show_time import ShowTime
 
 from clapperboard.resources.common import marshal_with_key
-from clapperboard.resources.common.response_fields import MOVIE, IMDB_DATA, SHOW_TIME
+from clapperboard.resources.common.response_fields import (
+    MOVIE,
+    IMDB_DATA,
+    SHOW_TIME
+)
 from clapperboard.resources.common.errors import MOVIE_NOT_FOUND
 from clapperboard.resources.common.data_types import imdb_data_data_type
 
@@ -33,8 +37,9 @@ class MovieAPI(Resource):
 
     @marshal_with(MOVIE, envelope='movie')
     def get(self, movie_id):
-        return Movie.query.get_or_abort(movie_id,
-                                        error_msg=MOVIE_NOT_FOUND.format(movie_id))
+        return Movie.query.get_or_abort(
+            movie_id, error_msg=MOVIE_NOT_FOUND.format(movie_id)
+        )
 
 
 imdb_data_json = {'imdb_data': Arg(dict, required=True)}
@@ -46,8 +51,9 @@ class MovieIMDBDataAPI(Resource):
 
     @marshal_with(IMDB_DATA, default={}, envelope='imdb_data')
     def get(self, movie_id):
-        movie = Movie.query.get_or_abort(movie_id,
-                                         error_msg=MOVIE_NOT_FOUND.format(movie_id))
+        movie = Movie.query.get_or_abort(
+            movie_id, error_msg=MOVIE_NOT_FOUND.format(movie_id)
+        )
         return movie.imdb_data
 
     # TODO: Make this call async
@@ -72,7 +78,8 @@ class MovieShowTimesAPI(Resource):
         super(MovieShowTimesAPI, self).__init__()
 
     def get(self, movie_id):
-        movie = Movie.query.get_or_abort(movie_id,
-                                         error_msg=MOVIE_NOT_FOUND.format(movie_id))
+        movie = Movie.query.get_or_abort(
+            movie_id, error_msg=MOVIE_NOT_FOUND.format(movie_id)
+        )
         show_times = movie.show_times.all()
         return {'show_times': marshal(show_times, SHOW_TIME)}

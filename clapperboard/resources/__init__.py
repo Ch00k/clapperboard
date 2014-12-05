@@ -5,8 +5,12 @@ from flask.ext.cors import CORS
 
 from webargs.flaskparser import parser
 
-from clapperboard.resources.movie import MovieAPI, MovieListAPI, MovieIMDBDataAPI, \
+from clapperboard.resources.movie import (
+    MovieAPI,
+    MovieListAPI,
+    MovieIMDBDataAPI,
     MovieShowTimesAPI
+)
 from clapperboard.resources.theatre import TheatreAPI, TheatreListAPI
 from clapperboard.resources.technology import TechnologyAPI, TechnologyListAPI
 
@@ -33,6 +37,7 @@ def handle_request_parsing_error(err):
     a JSON error response to the client.
     """
     code, msg = (
-        getattr(err, 'status_code', 400), getattr(err, 'message', 'Invalid Request')
+        getattr(err, 'status_code', 400), getattr(err, 'message',
+                                                  'Invalid Request')
     )
     abort(code, message=msg)

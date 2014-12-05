@@ -8,7 +8,8 @@ class Technology(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     code = db.Column(db.String(255))
     name = db.Column(db.String(255))
-    show_times = db.relationship('ShowTime', backref='technology', lazy='dynamic')
+    show_times = db.relationship('ShowTime', backref='technology',
+                                 lazy='dynamic')
 
     def __init__(self, id, code, name):
         self.id = id

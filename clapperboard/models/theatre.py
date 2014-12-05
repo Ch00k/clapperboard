@@ -11,7 +11,8 @@ class Theatre(db.Model):
     url_code = db.Column(db.String(255))
     st_url_code = db.Column(db.String(255))
     show_times = db.relationship('ShowTime', backref='theatre', lazy='dynamic')
-    last_fetched = db.relationship('LastFetched', backref='theatre', uselist=False)
+    last_fetched = db.relationship('LastFetched', backref='theatre',
+                                   uselist=False)
 
     def __init__(self, id, name, en_name, url_code, st_url_code):
         self.id = id

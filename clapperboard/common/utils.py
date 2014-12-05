@@ -19,8 +19,10 @@ def get_pk_data(theatres, force=False):
     """
     Get movies and showtimes data from PK website.
 
-    :param: theatres: List of dictionaries with theatre url codes and last fetched times
-    :param: force: Forcefully get all data regardless of Last-Modified header value
+    :param: theatres: List of dictionaries with theatre url codes
+                      and last fetched times
+    :param: force: Forcefully get all data regardless of Last-Modified
+                   header value
     :return: Dictionary containing PK movies and showtimes data
     """
 
@@ -36,16 +38,19 @@ def get_pk_data(theatres, force=False):
         '^https:\/\/cabinet.planeta-kino.com.ua\/hall\/\?show_id=(\d+)&.*$'
 
     for theatre in theatres:
-        url = 'http://planeta-kino.com.ua/{}/showtimes/xml/'.format(theatre['url_code'])
+        url = ('http://planeta-kino.com.ua/{}/showtimes/xml/'
+               .format(theatre['url_code']))
         try:
             log.info('Getting data for {}'.format(theatre['en_name']))
             resp = requests.get(url, cookies=cookies)
         except requests.ConnectionError as error:
             log.error(error)
-        last_modified = _rfc822_string_to_utc_datetime(resp.headers['Last-Modified'])
+        last_modified = \
+            _rfc822_string_to_utc_datetime(resp.headers['Last-Modified'])
 
         if not force:
-            if theatre['last_fetched'] and theatre['last_fetched'] >= last_modified:
+            if (theatre['last_fetched'] and
+                    theatre['last_fetched'] >= last_modified):
                 continue
 
         xml_data = resp.text
@@ -78,7 +83,9 @@ def get_pk_data(theatres, force=False):
                         theatre=pk_showtime['@theatre-id'],
                         hall_id=int(pk_showtime['@hall-id']),
                         technology=pk_showtime['@technology'],
-                        date_time=_string_to_utc_datetime(pk_showtime['@full-date']),
+                        date_time=_string_to_utc_datetime(
+                            pk_showtime['@full-date']
+                        ),
                         order_url=pk_showtime['@order-url'],
                         movie_id=int(pk_showtime['@movie-id'])
                     )
@@ -86,13 +93,13 @@ def get_pk_data(theatres, force=False):
 
         theatre['last_fetched'] = last_modified
 
-    for movie in movies:
-        movie['showtimes'] = []
-        for showtime in showtimes:
-            if showtime['movie_id'] == movie['id']:
-                movie['showtimes'].append(showtime)
+    # for movie in movies:
+    #     movie['showtimes'] = []
+    #     for showtime in showtimes:
+    #         if showtime['movie_id'] == movie['id']:
+    #             movie['showtimes'].append(showtime)
 
-    return movies, theatres
+    return movies, showtimes, theatres
 
 
 def get_movie_imdb_data(**kwargs):
@@ -128,8 +135,8 @@ def get_movie_imdb_data(**kwargs):
                 akas = [aka.split('::')[0] for aka in imdb_movie['akas']]
                 titles += akas
             if imdb_movie.get('akas from release info'):
-                akas_from_release_info = [aka.split('::')[1] for aka
-                                          in imdb_movie['akas from release info']]
+                akas_from_release_info = [aka.split('::')[1] for aka in
+                                          imdb_movie['akas from release info']]
                 titles += akas_from_release_info
 
             # Traverse the titles list and see if anything matches the pk_title
@@ -149,7 +156,8 @@ def get_movie_imdb_data(**kwargs):
 
 def _string_to_utc_datetime(dt_string):
     """
-    Convert date/time string representation to UTC datetime object (without tzinfo)
+    Convert date/time string representation to UTC datetime object
+    (without tzinfo)
 
     :param dt_string: Date/time string format
     :return: datetime object
@@ -157,10 +165,12 @@ def _string_to_utc_datetime(dt_string):
     if dt_string:
         # A dull check whether the string contains time
         if ':' in dt_string:
-            local_dt = datetime.datetime.strptime(dt_string, '%Y-%m-%d %H:%M:%S')
+            local_dt = datetime.datetime.strptime(dt_string,
+                                                  '%Y-%m-%d %H:%M:%S')
             local_tz = pytz.timezone('Europe/Kiev')
             utc_tz = pytz.UTC
-            return utc_tz.normalize(local_tz.localize(local_dt)).replace(tzinfo=None)
+            return (utc_tz.normalize(local_tz.localize(local_dt))
+                    .replace(tzinfo=None))
         else:
             return datetime.datetime.strptime(dt_string, '%Y-%m-%d').date()
     else:
@@ -194,14 +204,14 @@ def _compile_imdb_data_dict(movie_obj):
         rating=movie_obj.get('rating')
     )
 
-    imdb_data_dict['director'] = LIST_SEPARATOR.join([director.get('name')
-                                                      for director in
-                                                      movie_obj.get('director')])
+    imdb_data_dict['director'] = \
+        LIST_SEPARATOR.join([director.get('name')
+                             for director in movie_obj.get('director')])
 
     if movie_obj.get('cast'):
-        imdb_data_dict['cast'] = LIST_SEPARATOR.join([cast.get('name')
-                                                      for cast in
-                                                      movie_obj.get('cast')[:10]])
+        imdb_data_dict['cast'] =\
+            LIST_SEPARATOR.join([cast.get('name')
+                                 for cast in movie_obj.get('cast')[:10]])
 
     else:
         imdb_data_dict['cast'] = None
@@ -225,8 +235,8 @@ def _titles_match(pk_title, imdb_title):
     Try to find a match between a PK title and an IMDB title.
 
     First triy a simple string equality, then add a 'the' to PK title,
-    then remove 'the' from pk_title if it exists, then remove all 'and' occurrences
-    from PK title.
+    then remove 'the' from pk_title if it exists, then remove all 'and'
+    occurrences from PK title.
 
     :param pk_title: Title retrieved from PK movie URL
     :param imdb_title: Title of the movie found on IMDB
@@ -242,14 +252,15 @@ def _normalize_title(title):
     """
     Transform movie title so that it's ready for string comparison.
 
-    Remove everything but alphanumeric chars from the string and replaces unicode
-    characters with their ascii equivalents.
+    Remove everything but alphanumeric chars from the string and
+    replaces unicode characters with their ascii equivalents.
 
     :param title: Movie title
     :return: Normalized title
     """
     # Convert all unicode chars to ASCII
-    ascii_title = unicodedata.normalize('NFKD', title).encode('ascii', 'ignore')
+    ascii_title = unicodedata.normalize('NFKD', title).encode('ascii',
+                                                              'ignore')
 
     # Remove all non-alnum chars
     pattern = re.compile('[\W_]+')

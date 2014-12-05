@@ -16,23 +16,6 @@ from clapperboard import celery_app
 log = logging.getLogger(__name__)
 
 
-def _insert_movie_record_imdb_data(record):
-    imdb_query_title = record.url_code.replace('-', ' ')
-
-    movie_imdb_data = get_movie_imdb_data(title=imdb_query_title)
-    if movie_imdb_data:
-        movie_imdb_data['movie_id'] = record.id
-        record.imdb_data = IMDBData(**movie_imdb_data)
-    else:
-        log.warning('IMDB data not found')
-
-
-def _update_movie_record_imdb_data(record):
-    movie_imdb_data = get_movie_imdb_data(id=record.imdb_data.id)
-    for key in movie_imdb_data:
-        setattr(record.imdb_data, key, movie_imdb_data[key])
-
-
 def _insert_movie_record(movie_data_dict):
     movie_dict = copy(movie_data_dict)
     movie_dict.pop('showtimes')
@@ -65,28 +48,21 @@ def _update_movie_record(record, movie_data_dict):
             setattr(record, key, movie_data_dict[key])
 
 
-def _insert_movie_record_showtimes_data(record, showtimes_data):
-    # If no show times for a movie found add them
-    show_times = []
-    for show_time in showtimes_data:
-        show_time_dict = _compile_st_dict(show_time)
-        show_times.append(ShowTime(**show_time_dict))
-    record.show_times = show_times
+def _insert_movie_record_imdb_data(record):
+    imdb_query_title = record.url_code.replace('-', ' ')
+
+    movie_imdb_data = get_movie_imdb_data(title=imdb_query_title)
+    if movie_imdb_data:
+        movie_imdb_data['movie_id'] = record.id
+        record.imdb_data = IMDBData(**movie_imdb_data)
+    else:
+        log.warning('IMDB data not found')
 
 
-# TODO: How this function workds looks wrong. Research and optimize SQL queries here
-def _update_movie_record_showtimes_data(record, showtimes_data):
-    # If the record is found in db but is not XML delete the record
-    for st_record in record.show_times:
-        if st_record.id not in [movie_st['id'] for movie_st in showtimes_data]:
-            record.show_times.remove(st_record)
-
-    # If the movie record already has show times associated
-    # add only those that are not there yet
-    for show_time in showtimes_data:
-        if show_time['id'] not in [st.id for st in record.show_times]:
-            show_time_dict = _compile_st_dict(show_time)
-            record.show_times.append(ShowTime(**show_time_dict))
+def _update_movie_record_imdb_data(record):
+    movie_imdb_data = get_movie_imdb_data(id=record.imdb_data.id)
+    for key in movie_imdb_data:
+        setattr(record.imdb_data, key, movie_imdb_data[key])
 
 
 # TODO: There must be a more efficient way to do that
@@ -104,7 +80,8 @@ def _compile_st_dict(st_dict):
 
 def _update_last_fetched(theatres_dict):
     for theatre in theatres_dict:
-        Theatre.query.get(theatre['id']).last_fetched.date_time = theatre['last_fetched']
+        Theatre.query.get(theatre['id'])\
+            .last_fetched.date_time = theatre['last_fetched']
     db.session.commit()
 
 
@@ -122,38 +99,30 @@ def write_movie_data(force=False):
         last_fetched=th.last_fetched.date_time
     ) for th in Theatre.query.all()]
 
-    movies_data, theatres = get_pk_data(theatres_dict, force=force)
+    movies_data, showtimes_data, theatres_data = get_pk_data(theatres_dict,
+                                                             force=force)
     if not movies_data:
-        _update_last_fetched(theatres)
+        _update_last_fetched(theatres_data)
         log.info('No updated movie data found')
         return
 
-    processed_movies = 0
-    existing_movies = 0
+    existing_movies = Movie.query.count()
     new_movies = 0
 
+    log.info('Updating movies')
     for movie in movies_data:
         log.info('Processing movie: "{}"'.format(movie['url_code']))
-        processed_movies += 1
 
         movie_record = Movie.query.filter_by(id=movie['id']).first()
 
         if movie_record:
             log.info('Existing movie, updating')
-            existing_movies += 1
-
             _update_movie_record(movie_record, movie)
 
             if movie_record.imdb_data:
                 _update_movie_record_imdb_data(movie_record)
             else:
                 _insert_movie_record_imdb_data(movie_record)
-
-            if movie['showtimes']:
-                if movie_record.show_times.first():
-                    _update_movie_record_showtimes_data(movie_record, movie['showtimes'])
-                else:
-                    _insert_movie_record_showtimes_data(movie_record, movie['showtimes'])
         else:
             log.info('New movie, adding')
             new_movies += 1
@@ -161,8 +130,41 @@ def write_movie_data(force=False):
 
         db.session.commit()
 
-    log.info('Movies processed: {}'.format(processed_movies))
-    log.info('Movies already in db: {}'.format(existing_movies))
+    log.info('Movies processed: {}'.format(len(movies_data)))
+    log.info('Existing movies: {}'.format(existing_movies))
     log.info('New movies: {}'.format(new_movies))
 
-    _update_last_fetched(theatres)
+    existing_showtimes = ShowTime.query.count()
+    new_showtimes = 0
+    deleted_showtimes = 0
+
+    log.info('Updating showtimes')
+    showtime_ids = [st['id'] for st in showtimes_data]
+    showtimes_to_delete = []
+    showtimes_to_add = []
+
+    for showtime in ShowTime.query.all():
+        if showtime.id not in showtime_ids:
+            showtimes_to_delete.append(showtime.id)
+            deleted_showtimes += 1
+    for showtime in showtimes_data:
+        if not ShowTime.query.get(showtime['id']):
+            showtimes_to_add.append(ShowTime(**showtime))
+            new_showtimes += 1
+
+    if showtimes_to_delete:
+        ShowTime.query.filter(ShowTime.id.in_(showtimes_to_delete))\
+            .delete(synchronize_session=False)
+        db.session.add_all(showtimes_to_add)
+
+    if showtimes_to_add:
+        db.session.add_all(showtimes_to_add)
+
+    db.session.commit()
+
+    log.info('Showtimes processed: {}'.format(len(showtimes_data)))
+    log.info('Existing showtimes: {}'.format(existing_showtimes))
+    log.info('New showtimes: {}'.format(new_showtimes))
+    log.info('Deleted showtimes: {}'.format(deleted_showtimes))
+
+    _update_last_fetched(theatres_data)

@@ -39,7 +39,8 @@ def db_seed():
         (2, u'Харків', 'Kharkiv', 'kharkov', 'pk-kharkov'),
         (3, u'Львів', 'Lviv', 'lvov', 'pk-lvov'),
         (4, u'Одеса (Таїрова)', 'Odesa (Tairova)', 'odessa', 'pk-odessa'),
-        (5, u'Одеса (Котовського)', 'Odesa (Kotovskoho)', 'odessa2', 'pk-odessa2'),
+        (5, u'Одеса (Котовського)', 'Odesa (Kotovskoho)', 'odessa2',
+         'pk-odessa2'),
         (6, u'Суми', 'Sumy', 'sumy', 'pk-sumy'),
         (7, u'Ялта', 'Yalta', 'yalta', 'pk-yalta')
     ]
@@ -56,14 +57,16 @@ def db_seed():
     try:
         db.session.commit()
     except IntegrityError as e:
-        raise StandardError(e.message + '\r\nPerhaps database has already been seeded')
+        raise StandardError(e.message +
+                            '\r\nPerhaps database has already been seeded')
 
 
 @manager.command
 def fetch(force=False):
     """
     Run celery task forcefully to populate the database.
-    :param: force: Forcefully get all data regardless of Last-Modified header value
+    :param: force: Forcefully get all data regardless of Last-Modified
+                   header value
     """
     write_movie_data.s(force=force).apply_async(queue='fetch_pk_data',
                                                 routing_key='fetch_pk_data')

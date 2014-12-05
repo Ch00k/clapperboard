@@ -19,7 +19,7 @@ class TechnologyAPI(Resource):
         super(TechnologyAPI, self).__init__()
 
     def get(self, technology_id):
-        technology = Technology.query.get_or_abort(technology_id,
-                                                   error_msg=TECHNOLOGY_NOT_FOUND
-                                                   .format(technology_id))
+        technology = Technology.query.get_or_abort(
+            technology_id, error_msg=TECHNOLOGY_NOT_FOUND.format(technology_id)
+        )
         return {'technology': marshal(technology, TECHNOLOGY)}

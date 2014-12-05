@@ -13,8 +13,8 @@ class ShowTime(db.Model):
     order_url = db.Column(db.String(255))
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
 
-    def __init__(self, id, theatre_id, hall_id, technology_id, date_time, order_url,
-                 movie_id):
+    def __init__(self, id, theatre_id, hall_id, technology_id, date_time,
+                 order_url, movie_id):
         self.id = id
         self.theatre_id = theatre_id
         self.hall_id = hall_id
