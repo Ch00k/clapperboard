@@ -9,8 +9,10 @@ from clapperboard.resources.movie import (
     MovieAPI,
     MovieListAPI,
     MovieIMDBDataAPI,
-    MovieShowTimesAPI
+    MovieShowTimesListAPI,
+    MovieShowTimeAPI
 )
+from clapperboard.resources.showtime import ShowTimeAPI, ShowTimesListAPI
 from clapperboard.resources.theatre import TheatreAPI, TheatreListAPI
 from clapperboard.resources.technology import TechnologyAPI, TechnologyListAPI
 
@@ -21,7 +23,11 @@ cors = CORS()
 api.add_resource(MovieListAPI, '/movies')
 api.add_resource(MovieAPI, '/movies/<int:movie_id>')
 api.add_resource(MovieIMDBDataAPI, '/movies/<int:movie_id>/imdb-data')
-api.add_resource(MovieShowTimesAPI, '/movies/<int:movie_id>/showtimes')
+api.add_resource(MovieShowTimesListAPI, '/movies/<int:movie_id>/showtimes')
+api.add_resource(MovieShowTimeAPI,
+                 '/movies/<int:movie_id>/showtimes/<int:showtime_id>')
+api.add_resource(ShowTimesListAPI, '/showtimes')
+api.add_resource(ShowTimeAPI, '/showtimes/<int:showtime_id>')
 api.add_resource(TheatreListAPI, '/theatres', '/theatres/')
 api.add_resource(TheatreAPI, '/theatres/<int:theatre_id>')
 api.add_resource(TechnologyListAPI, '/technologies')
@@ -40,4 +46,4 @@ def handle_request_parsing_error(err):
         getattr(err, 'status_code', 400), getattr(err, 'message',
                                                   'Invalid Request')
     )
-    abort(code, message=msg)
+    abort(code, status='error', code=code, message=msg)
