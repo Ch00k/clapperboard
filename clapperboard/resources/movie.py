@@ -20,9 +20,26 @@ from clapperboard.resources.common.errors import (
     SHOWTIME_NOT_FOUND
 )
 
-from clapperboard.resources.common.arg_validators import imdb_data_validator
+from clapperboard.resources.common.arg_validators import (
+    imdb_data_json_validator,
+    movie_list_q_params_validator
+)
 
 from clapperboard.common.utils import get_movie_imdb_data
+
+
+movie_list_q_params = {
+    'imdb_data': Arg(
+        str, target='querystring', validate=movie_list_q_params_validator
+    )
+}
+
+
+imdb_data_json = {
+    'imdb_data': Arg(
+        dict, target='json', required=True, validate=imdb_data_json_validator
+    )
+}
 
 
 class MovieListAPI(Resource):
@@ -30,8 +47,15 @@ class MovieListAPI(Resource):
         super(MovieListAPI, self).__init__()
         self.movie_schema = MovieSchema(many=True)
 
-    def get(self):
-        movies = Movie.query.all()
+    @use_args(movie_list_q_params)
+    def get(self, args):
+        print args
+        movies = Movie.query
+        if args['imdb_data'] == 'empty':
+            movies = movies.filter(Movie.imdb_data == None)
+        elif args['imdb_data'] == 'non_empty':
+            movies = movies.filter(Movie.imdb_data != None)
+        movies = movies.all()
         res = self.movie_schema.dump(movies)
         return res.data
 
@@ -47,13 +71,6 @@ class MovieAPI(Resource):
         )
         res = self.movie_schema.dump(movie)
         return res.data
-
-
-imdb_data_json = {
-    'imdb_data': Arg(
-        dict, target='json', required=True, validate=imdb_data_validator
-    )
-}
 
 
 class MovieIMDBDataAPI(Resource):
