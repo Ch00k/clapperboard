@@ -6,7 +6,7 @@ flask-cors
 marshmallow
 git+https://github.com/sloria/webargs.git
 requests
-PyMySQL
+MySQL-python
 xmltodict
 IMDbPY
 celery
