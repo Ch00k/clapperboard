@@ -29,3 +29,5 @@ sql_dedug: false
 cors_origins: "*"
 
 auth_token: "123qwe"
+
+rely_on_last_modified: false

@@ -9,6 +9,7 @@ AUTH_TOKEN = '{{ auth_token }}'
 DEBUG = {{ debug }}
 SQLALCHEMY_ECHO = {{ sql_dedug }}
 
+RELY_ON_LAST_MODIFIED = {{ rely_on_last_modified }}
 
 BROKER_URL = '{{ amqp_uri }}'
 CELERY_RESULT_BACKEND = '{{ amqp_uri }}'
@@ -26,6 +27,7 @@ PK_FETCH_FREQUENCY_MINUTES = {{ pk_fetch_frequency }}
 CELERYBEAT_SCHEDULE = {
     'pk_fetch_periodic': {
         'task': 'clapperboard.workers.tasks.write_movie_data',
+        'args': (not RELY_ON_LAST_MODIFIED,),
         'schedule': crontab(minute='*/{}'.format(PK_FETCH_FREQUENCY_MINUTES)),
         'options': {
             'queue': 'fetch_pk_data',
