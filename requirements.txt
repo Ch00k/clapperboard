@@ -11,4 +11,3 @@ MySQL-python
 xmltodict
 IMDbPY
 celery
-ipython

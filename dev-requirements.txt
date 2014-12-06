@@ -2,3 +2,4 @@
 
 honcho
 flower
+ipython
