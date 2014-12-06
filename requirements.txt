@@ -4,10 +4,9 @@ flask-sqlalchemy
 flask-migrate
 flask-cors
 marshmallow
-#webargs
 git+https://github.com/sloria/webargs.git
 requests
-MySQL-python
+PyMySQL
 xmltodict
 IMDbPY
 celery

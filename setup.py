@@ -22,7 +22,7 @@ setup(
         'flask-sqlalchemy',
         'webargs',
         'requests',
-        'MySQL-python',
+        'pymysql',
         'xmltodict',
         'IMDbPY'
     ]

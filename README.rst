@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/Ch00k/clapperboard.svg?branch=develop
+    :target: https://travis-ci.org/Ch00k/clapperboard
+
 Current functionality is very simple: get the list of currently running `Planeta Kino <http://planeta-kino.com.ua/lvov/>`_ movies and sort them by IMDB rating.
 
 Built with `Flask <http://flask.pocoo.org/>`_, `Flask-RESTful <http://flask-restful.readthedocs.org/en/latest/>`_ `Flask-SQLAlchemy <https://pythonhosted.org/Flask-SQLAlchemy/>`_.
