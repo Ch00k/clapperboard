@@ -34,8 +34,7 @@ def _insert_movie_record(movie_data_dict):
 
 def _update_movie_record(record, movie_data_dict):
     for key in movie_data_dict:
-        if key != 'showtimes':
-            setattr(record, key, movie_data_dict[key])
+        setattr(record, key, movie_data_dict[key])
 
 
 def _insert_movie_record_imdb_data(record):
@@ -105,7 +104,7 @@ def write_movie_data(force=False):
     for movie in movies_data:
         log.info('Processing movie: "{}"'.format(movie['url_code']))
 
-        movie_record = Movie.query.filter_by(id=movie['id']).first()
+        movie_record = Movie.query.get(movie['id'])
 
         if movie_record:
             log.info('Existing movie, updating')

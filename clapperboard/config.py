@@ -8,7 +8,7 @@ CORS_HEADERS = 'Content-Type'
 CORS_RESOURCES = {r'/*': {'origins': '*'}}
 AUTH_TOKEN = '123qwe'
 DEBUG = True
-SQLALCHEMY_ECHO = True
+SQLALCHEMY_ECHO = False
 
 
 BROKER_URL = 'amqp://'

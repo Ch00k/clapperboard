@@ -118,12 +118,14 @@ def get_movie_imdb_data(**kwargs):
         for imdb_movie in imdb_movies:
 
             # We are only interested in movies (no series/episodes)
-            if imdb_movie.get('kind') != 'movie':
+            if imdb_movie.get('kind') not in ('movie', 'video movie'):
                 continue
 
             # Only take into account the movies whose release year
-            # is not earlier than one year ago
-            if imdb_movie.get('year') < datetime.date.today().year - 1:
+            # is not earlier than one year ago. If IMDB movie's year is
+            # unknown assume it's the next year
+            current_year = datetime.date.today().year
+            if imdb_movie.get('year', current_year + 1) < current_year - 1:
                 continue
 
             # Get full info about the movie
