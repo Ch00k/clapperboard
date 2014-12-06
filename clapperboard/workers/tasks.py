@@ -75,7 +75,7 @@ def _update_last_fetched(theatres_dict):
 
 
 @celery_app.task
-def write_movie_data(force=False):
+def write_movie_data(force):
     """
     Create new or update existing movie record in database.
 

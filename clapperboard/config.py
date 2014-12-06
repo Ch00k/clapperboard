@@ -10,6 +10,7 @@ AUTH_TOKEN = '123qwe'
 DEBUG = True
 SQLALCHEMY_ECHO = False
 
+RELY_ON_LAST_MODIFIED = False
 
 BROKER_URL = 'amqp://'
 CELERY_RESULT_BACKEND = 'amqp://'
@@ -27,6 +28,7 @@ PK_FETCH_FREQUENCY_MINUTES = 30
 CELERYBEAT_SCHEDULE = {
     'pk_fetch_periodic': {
         'task': 'clapperboard.workers.tasks.write_movie_data',
+        'args': (not RELY_ON_LAST_MODIFIED,),
         'schedule': crontab(minute='*/{}'.format(PK_FETCH_FREQUENCY_MINUTES)),
         'options': {
             'queue': 'fetch_pk_data',

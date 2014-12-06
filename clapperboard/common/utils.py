@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 LIST_SEPARATOR = ', '
 
 
-def get_pk_data(theatres, force=False):
+def get_pk_data(theatres, force):
     """
     Get movies and showtimes data from PK website.
 
