@@ -49,7 +49,6 @@ class MovieListAPI(Resource):
 
     @use_args(movie_list_q_params)
     def get(self, args):
-        print args
         movies = Movie.query
         if args['imdb_data'] == 'empty':
             movies = movies.filter(Movie.imdb_data == None)
@@ -103,9 +102,13 @@ class MovieIMDBDataAPI(Resource):
 
         # TODO: Handle inexistent IMDB id
         # TODO: Handle already existing IMDB record
-        movie_imdb_data = get_movie_imdb_data(id=imdb_id)
-        movie_imdb_data['movie_id'] = movie.id
-        movie.imdb_data = IMDBData(**movie_imdb_data)
+        imdb_data = IMDBData.query.get(args['imdb_data']['id'])
+        if imdb_data:
+            movie.imdb_data - imdb_data
+        else:
+            movie_imdb_data = get_movie_imdb_data(id=imdb_id)
+            movie_imdb_data['movie_id'] = movie.id
+            movie.imdb_data = IMDBData(**movie_imdb_data)
         db.session.commit()
         return 200
 

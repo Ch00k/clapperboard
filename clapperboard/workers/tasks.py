@@ -146,7 +146,6 @@ def write_movie_data(force):
     if showtimes_to_delete:
         ShowTime.query.filter(ShowTime.id.in_(showtimes_to_delete))\
             .delete(synchronize_session=False)
-        db.session.add_all(showtimes_to_add)
 
     if showtimes_to_add:
         db.session.add_all(showtimes_to_add)

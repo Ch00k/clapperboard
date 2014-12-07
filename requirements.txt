@@ -10,3 +10,4 @@ MySQL-python
 xmltodict
 IMDbPY
 celery
+rollbar

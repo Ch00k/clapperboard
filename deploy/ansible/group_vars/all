@@ -31,3 +31,6 @@ cors_origins: "*"
 auth_token: "123qwe"
 
 rely_on_last_modified: false
+
+environment: "prod"
+rollbar_token: "123qwe"

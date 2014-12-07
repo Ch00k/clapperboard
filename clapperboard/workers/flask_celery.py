@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import flask
 from celery import Celery
+import rollbar
 
 
 class FlaskCelery(Celery):
@@ -26,6 +27,11 @@ class FlaskCelery(Celery):
                 else:
                     with _celery.app.app_context():
                         return TaskBase.__call__(self, *args, **kwargs)
+
+            def on_failure(self, exc, task_id, args, kwargs, einfo):
+                rollbar.init(_celery.conf.ROLLBAR_TOKEN,
+                             _celery.conf.ENVIRONMENT)
+                rollbar.report_exc_info()
 
         self.Task = ContextTask
 

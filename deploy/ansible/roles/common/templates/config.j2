@@ -2,6 +2,7 @@ from celery.schedules import crontab
 from kombu import Exchange, Queue
 
 
+ENVIRONMENT = '{{ environment }}'
 SQLALCHEMY_DATABASE_URI = '{{ sqlalchemy_db_uri }}'
 CORS_HEADERS = 'Content-Type'
 CORS_RESOURCES = {r'/*': {'origins': '{{ cors_origins }}'}}
@@ -48,3 +49,5 @@ CELERY_ROUTES = {
         'routing_key': 'fetch_pk_data'
     }
 }
+
+ROLLBAR_TOKEN = '{{ rollbar_token }}'
