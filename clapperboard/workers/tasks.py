@@ -27,7 +27,10 @@ def _insert_movie_record(movie_data_dict):
         movie_imdb_data['movie_id'] = movie_data_dict['id']
         movie_record.imdb_data = IMDBData(**movie_imdb_data)
     else:
-        log.warning('IMDB data not found')
+        log.warning(
+            'IMDB data not found for movie "{}"'
+            .format(movie_data_dict['url_code'])
+        )
 
     db.session.add(movie_record)
 
@@ -45,7 +48,9 @@ def _insert_movie_record_imdb_data(record):
         movie_imdb_data['movie_id'] = record.id
         record.imdb_data = IMDBData(**movie_imdb_data)
     else:
-        log.warning('IMDB data not found')
+        log.warning(
+            'IMDB data not found for movie "{}"'.format(record.url_code)
+        )
 
 
 def _update_movie_record_imdb_data(record):
@@ -102,12 +107,10 @@ def write_movie_data(force):
 
     log.info('Updating movies')
     for movie in movies_data:
-        log.info('Processing movie: "{}"'.format(movie['url_code']))
-
         movie_record = Movie.query.get(movie['id'])
 
         if movie_record:
-            log.info('Existing movie, updating')
+            log.info('Updating existing movie "{}"'.format(movie['url_code']))
             _update_movie_record(movie_record, movie)
 
             if movie_record.imdb_data:
@@ -115,7 +118,7 @@ def write_movie_data(force):
             else:
                 _insert_movie_record_imdb_data(movie_record)
         else:
-            log.info('New movie, adding')
+            log.info('Adding new movie "{}"'.format(movie['url_code']))
             new_movies += 1
             _insert_movie_record(movie)
 
