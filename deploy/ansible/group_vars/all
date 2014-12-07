@@ -32,5 +32,5 @@ auth_token: "123qwe"
 
 rely_on_last_modified: false
 
-environment: "prod"
+env: "production"
 rollbar_token: "123qwe"
