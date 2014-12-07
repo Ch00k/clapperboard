@@ -1,31 +1,42 @@
 ---
 - name: Clone repository
-  git: repo={{ git_repo }} dest={{ dist_location }} version={{ git_tag }}
+  git: repo={{ git_repo }}
+       dest={{ dist_location }}
+       version={{ git_tag }}
 
 - name: Create virtualenv and install requirements
-  pip: requirements={{ dist_location }}/prod-requirements.txt virtualenv_command='virtualenv -p /usr/bin/python2' virtualenv={{ base_dir }}/{{ venv_name }}
+  pip: requirements={{ dist_location }}/prod-requirements.txt
+       virtualenv_command='virtualenv -p /usr/bin/python2'
+       virtualenv={{ base_dir }}/{{ venv_name }}
 
 - name: Install application
-  pip: name={{ dist_location }}/. extra_args='-U' virtualenv={{ base_dir }}/{{ venv_name }}
+  pip: name={{ dist_location }}/.
+       extra_args='-U'
+       virtualenv={{ base_dir }}/{{ venv_name }}
 
 - name: Create run directory
-  file: state=directory path={{ base_dir }}/run
+  file: state=directory
+        path={{ base_dir }}/run
 
 - name: Install supervisor configuration
-  template: src=cb_supervisor.j2 dest={{ base_dir }}/cb_supervisor.conf
+  template: src=cb_supervisor.j2
+            dest={{ base_dir }}/cb_supervisor.conf
 
 - name: Install application configuration
-  template: src={{ item }}.j2 dest={{ base_dir }}/{{ item }}.py
+  template: src={{ item }}.j2
+            dest={{ base_dir }}/{{ item }}.py
   with_items:
     - config
 
 - name: Migrate database
   # command won't work here because it does not read env vars
-  shell: chdir={{ dist_location }} CLPBRD_CONFIG={{ base_dir }}/config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage db upgrade
+  shell: chdir={{ dist_location }}
+         CLPBRD_CONFIG={{ base_dir }}/config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage db upgrade
 
 - name: Seed database
   # command won't work here because it does not read env vars
-  shell: chdir={{ dist_location }} CLPBRD_CONFIG={{ base_dir }}/config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage db_seed
+  shell: chdir={{ dist_location }}
+         CLPBRD_CONFIG={{ base_dir }}/config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage db_seed
   ignore_errors: yes
 
 - name: Shutdown supervisor
@@ -37,3 +48,11 @@
 # - name: Run worker to fetch initial data from PK
 #   # command won't work here because it does not read env vars
 #   shell: chdir={{ dist_location }} CLPBRD_CONFIG={{ base_dir }}/config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage fetch
+
+- name: Rollbar deployment notification
+  rollbar_deployment: token={{ rollbar_token }}
+                      environment={{ env }}
+                      revision=new,
+                      user=Ch00k,
+                      rollbar_user=Ch00k,
+                      comment="New version deployed!"

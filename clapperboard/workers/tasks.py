@@ -1,4 +1,3 @@
-from copy import copy
 import logging
 
 from clapperboard.models import db
@@ -24,7 +23,6 @@ def _insert_movie_record(movie_data_dict):
     movie_imdb_data = get_movie_imdb_data(title=imdb_query_title)
 
     if movie_imdb_data:
-        movie_imdb_data['movie_id'] = movie_data_dict['id']
         movie_record.imdb_data = IMDBData(**movie_imdb_data)
     else:
         log.warning(
@@ -45,7 +43,6 @@ def _insert_movie_record_imdb_data(record):
 
     movie_imdb_data = get_movie_imdb_data(title=imdb_query_title)
     if movie_imdb_data:
-        movie_imdb_data['movie_id'] = record.id
         record.imdb_data = IMDBData(**movie_imdb_data)
     else:
         log.warning(
