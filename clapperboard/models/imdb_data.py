@@ -13,10 +13,10 @@ class IMDBData(db.Model):
     cast = db.Column(db.String(4096))
     runtime = db.Column(db.Integer)
     rating = db.Column(db.Float)
-    movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
+    movies = db.relationship('Movie', backref='imdb_data', lazy='joined')
 
     def __init__(self, id, title, genre, country, director, cast, runtime,
-                 rating, movie_id):
+                 rating):
         self.id = id
         self.title = title
         self.genre = genre
@@ -25,7 +25,6 @@ class IMDBData(db.Model):
         self.cast = cast
         self.runtime = runtime
         self.rating = rating
-        self.movie_id = movie_id
 
     def __repr__(self):
         return '<IMDBData %r>' % self.id

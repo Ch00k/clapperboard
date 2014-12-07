@@ -10,8 +10,7 @@ class Movie(db.Model):
     url_code = db.Column(db.String(255))
     show_start = db.Column(db.Date)
     show_end = db.Column(db.Date)
-    imdb_data = db.relationship('IMDBData', uselist=False, backref='movie',
-                                lazy='joined')
+    imdb_id = db.Column(db.Integer, db.ForeignKey('imdb_data.id'))
     show_times = db.relationship('ShowTime', backref='movie', lazy='dynamic')
 
     def __init__(self, id, title, url_code, show_start, show_end):
