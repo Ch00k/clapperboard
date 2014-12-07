@@ -10,5 +10,7 @@ class ClapQuery(BaseQuery):
         """
         rv = self.get(ident)
         if rv is None:
-            abort(error_code, code=error_code, message=error_msg)
+            abort(
+                error_code, status='error', code=error_code, message=error_msg
+            )
         return rv
