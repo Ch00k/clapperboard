@@ -23,7 +23,12 @@ def _insert_movie_record(movie_data_dict):
     movie_imdb_data = get_movie_imdb_data(title=imdb_query_title)
 
     if movie_imdb_data:
-        movie_record.imdb_data = IMDBData(**movie_imdb_data)
+        # TODO: Factor this (and all the below) into a function
+        imdb_data = IMDBData.query.get(movie_imdb_data['id'])
+        if imdb_data:
+            movie_record.imdb_data = imdb_data
+        else:
+            movie_record.imdb_data = IMDBData(**movie_imdb_data)
     else:
         log.warning(
             'IMDB data not found for movie "{}"'
@@ -43,7 +48,11 @@ def _insert_movie_record_imdb_data(record):
 
     movie_imdb_data = get_movie_imdb_data(title=imdb_query_title)
     if movie_imdb_data:
-        record.imdb_data = IMDBData(**movie_imdb_data)
+        imdb_data = IMDBData.query.get(movie_imdb_data['id'])
+        if imdb_data:
+            record.imdb_data = imdb_data
+        else:
+            record.imdb_data = IMDBData(**movie_imdb_data)
     else:
         log.warning(
             'IMDB data not found for movie "{}"'.format(record.url_code)
@@ -52,8 +61,12 @@ def _insert_movie_record_imdb_data(record):
 
 def _update_movie_record_imdb_data(record):
     movie_imdb_data = get_movie_imdb_data(id=record.imdb_data.id)
-    for key in movie_imdb_data:
-        setattr(record.imdb_data, key, movie_imdb_data[key])
+    imdb_data = IMDBData.query.get(movie_imdb_data['id'])
+    if imdb_data:
+        record.imdb_data = imdb_data
+    else:
+        for key in movie_imdb_data:
+            setattr(record.imdb_data, key, movie_imdb_data[key])
 
 
 # TODO: There must be a more efficient way to do that
