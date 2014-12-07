@@ -104,7 +104,7 @@ class MovieIMDBDataAPI(Resource):
         # TODO: Handle already existing IMDB record
         imdb_data = IMDBData.query.get(args['imdb_data']['id'])
         if imdb_data:
-            movie.imdb_data - imdb_data
+            movie.imdb_data = imdb_data
         else:
             movie_imdb_data = get_movie_imdb_data(id=imdb_id)
             movie_imdb_data['movie_id'] = movie.id
