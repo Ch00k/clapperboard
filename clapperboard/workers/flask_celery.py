@@ -29,9 +29,10 @@ class FlaskCelery(Celery):
                         return TaskBase.__call__(self, *args, **kwargs)
 
             def on_failure(self, exc, task_id, args, kwargs, einfo):
-                rollbar.init(_celery.conf.ROLLBAR_TOKEN,
-                             _celery.conf.ENVIRONMENT)
-                rollbar.report_exc_info()
+                if _celery.conf.ENVIRONMENT == 'production':
+                    rollbar.init(_celery.conf.ROLLBAR_TOKEN,
+                                 _celery.conf.ENVIRONMENT)
+                    rollbar.report_exc_info()
 
         self.Task = ContextTask
 

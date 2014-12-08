@@ -11,7 +11,6 @@ from clapperboard.common.utils import get_pk_data, get_movie_imdb_data
 
 from clapperboard import celery_app
 
-
 log = logging.getLogger(__name__)
 
 
