@@ -21,9 +21,11 @@ setup(
         'flask-restful',
         'flask-sqlalchemy',
         'webargs',
+        'marshmallow',
         'requests',
-        'MySQL-python',
+        'PyMySQL',
         'xmltodict',
-        'IMDbPY'
+        'rollbar',
+        'lxml'
     ]
 )

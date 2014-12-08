@@ -1,16 +1,15 @@
 import datetime
 import logging
 import re
-import rfc822
+from email.utils import parsedate_tz, mktime_tz
 
-import imdb
 import pytz
 import requests
-import unicodedata
 import xmltodict
+from lxml import html as lh
+
 
 log = logging.getLogger(__name__)
-
 
 LIST_SEPARATOR = ', '
 
@@ -34,22 +33,24 @@ def get_pk_data(theatres, force):
     showtimes = []
     seen_movies = set()
 
-    order_url_pattern = \
-        '^https:\/\/cabinet.planeta-kino.com.ua\/hall\/\?show_id=(\d+)&.*$'
+    order_url_pattern = ("^https:\/\/cabinet.planeta-kino.com.ua"
+                         "\/hall\/\?show_id=(\d+)&.*$")
 
     for theatre in theatres:
-        url = ('http://planeta-kino.com.ua/{}/showtimes/xml/'
+        url = ("http://planeta-kino.com.ua/{}/showtimes/xml/"
                .format(theatre['url_code']))
         try:
-            log.info('Getting data for {}'.format(theatre['en_name']))
+            log.info("Getting data for {}".format(theatre['en_name']))
             resp = requests.get(url, cookies=cookies)
         except requests.ConnectionError as error:
             log.error(error)
             # TODO: a temporary workaround for
             # https://github.com/Ch00k/clapperboard/issues/4
-            log.error('Could not fetch data for {}. '
-                      'Skipping the whole run'.format(theatre['en_name']))
-            return
+            raise RuntimeError(
+                "Could not fetch data for {}. Skipping the whole run".format(
+                    theatre['en_name'])
+            )
+
         last_modified = _rfc822_string_to_utc_datetime(
             resp.headers['Last-Modified']
         )
@@ -105,57 +106,98 @@ def get_pk_data(theatres, force):
 def get_movie_imdb_data(**kwargs):
     """
     Retrieve IMDB info about a movie either by its PK title or by IMDB id.
-
     :param kwargs: Either title or IMDB id
     :return: Dictionary with IMDB movie data
     """
-    imdb_cl = imdb.IMDb()
+    # XPath selectors on movie search page (/find)
+    link_xpath = (
+        "//div[@class='findSection']/table[@class='findList']"
+        "/tr[starts-with(@class, 'findResult')][1]/td[@class='result_text']"
+        "/a/@href"
+    )
+
+    # XPath selectors on movie page (/title/tt<id>)
+    title_xpath = "//td[@id='overview-top']/h1/span[@itemprop='name']/text()"
+    rating_xpath = "//div[@class='titlePageSprite star-box-giga-star']/text()"
+    genre_xpath = "//div[@itemprop='genre']/a/text()"
+    director_xpath = "//div[@itemprop='director']/a/span/text()"
+    cast_xpath = (
+        "//table[@class='cast_list']/tr[position() >= 2 and position() <= 11]"
+        "/td[@itemtype='http://schema.org/Person']/a/span/text()"
+    )
+    movie_details_box = "//div[@id='titleDetails']/div"
+    runtime_xpath = "{}/time/text()".format(movie_details_box)
+    country_xpath = "{}/h4[text()='Country:']/../a/text()".format(
+        movie_details_box
+    )
+
+    base_url = "http://www.imdb.com"
+    movie_url = "{}/title/tt{}"
+    search_query_string = "find?q={}&&s=tt&&ttype=ft"
+    headers = {'Accept-Language': 'en-US,en'}
 
     if 'title' in kwargs:
-        normalized_title = _normalize_title(kwargs['title'])
-        imdb_movies = imdb_cl.search_movie(kwargs['title'])
+        search_resuls = requests.get(
+            "{}/{}".format(
+                base_url,
+                search_query_string.format(kwargs['title'])
+            ),
+            headers=headers
+        )
 
-        for imdb_movie in imdb_movies:
-
-            # We are only interested in movies (no series/episodes)
-            if imdb_movie.get('kind') not in ('movie', 'video movie'):
-                continue
-
-            # Only take into account the movies whose release year
-            # is not earlier than one year ago. If IMDB movie's year is
-            # unknown assume it's the next year
-            current_year = datetime.date.today().year
-            if imdb_movie.get('year', current_year + 1) < current_year - 1:
-                continue
-
-            # Get full info about the movie
-            imdb_cl.update(imdb_movie)
-
-            # Compose all known movie titles into a list
-            titles = [imdb_movie.get('title')]
-            if imdb_movie.get('akas'):
-                akas = [aka.split('::')[0] for aka in imdb_movie['akas']]
-                titles += akas
-            if imdb_movie.get('akas from release info'):
-                akas_from_release_info = [
-                    aka.split('::')[1] for
-                    aka in imdb_movie['akas from release info']
-                ]
-                titles += akas_from_release_info
-
-            # Traverse the titles list and see if anything matches the pk_title
-            for title in titles:
-                normalized_imdb_title = _normalize_title(title)
-                # Return IMDB movie object if there is a title match
-                if _titles_match(normalized_title, normalized_imdb_title):
-                    return _compile_imdb_data_dict(imdb_movie)
+        lh_doc = lh.fromstring(search_resuls.text)
+        movie_link = lh_doc.xpath(link_xpath)
+        if movie_link:
+            movie_link = movie_link[0]
         else:
             return {}
 
+        pattern = "^\/title\/tt(\d+)\/\?ref_=fn_ft_tt_1$"
+        movie_id = re.match(pattern, movie_link).group(1)
+        movie_id = int(movie_id)
+
     elif 'id' in kwargs:
-        # Find IMDB movie by id
-        # TODO: Handle inexistent ID
-        return _compile_imdb_data_dict(imdb_cl.get_movie(kwargs['id']))
+        movie_id = kwargs['id']
+    else:
+        raise RuntimeError(
+            "Must be called with either IMDB movie ID of movie title"
+        )
+
+    movie_page = requests.get(
+        movie_url.format(base_url, movie_id),
+        headers=headers
+    )
+
+    lh_doc = lh.fromstring(movie_page.text)
+
+    # Get all IMDB data
+    title = lh_doc.xpath(title_xpath)
+    rating = lh_doc.xpath(rating_xpath)
+    genre = lh_doc.xpath(genre_xpath)
+    director = lh_doc.xpath(director_xpath)
+    cast = lh_doc.xpath(cast_xpath)
+    country = lh_doc.xpath(country_xpath)
+    runtime = lh_doc.xpath(runtime_xpath)
+
+    # Normalize
+    title = title[0]
+    rating = float(rating[0].strip()) if rating else None
+    genre = LIST_SEPARATOR.join([g.strip() for g in genre])
+    director = LIST_SEPARATOR.join(director)
+    cast = LIST_SEPARATOR.join(cast)
+    country = LIST_SEPARATOR.join(country)
+    runtime = int(runtime[0].split(' ')[0]) if runtime else None
+
+    return dict(
+        id=movie_id,
+        title=title,
+        rating=rating,
+        genre=genre,
+        country=country,
+        director=director,
+        cast=cast,
+        runtime=runtime
+    )
 
 
 def _string_to_utc_datetime(dt_string):
@@ -190,48 +232,9 @@ def _rfc822_string_to_utc_datetime(rfc822_string):
     :return: datetime object
     """
     return datetime.datetime.fromtimestamp(
-        rfc822.mktime_tz(rfc822.parsedate_tz(rfc822_string)), pytz.UTC
+        mktime_tz(parsedate_tz(rfc822_string)),
+        pytz.UTC
     ).replace(tzinfo=None)
-
-
-def _compile_imdb_data_dict(movie_obj):
-    """
-    Compile a dictionary with IMDB movie data out of an IMDBpy Movie object
-    :param movie_obj: IMDBpy movie object
-    :return: dictionary
-    """
-    imdb_data_dict = dict(
-        id=int(movie_obj.getID()),
-        title=movie_obj.get('title'),
-        genre=LIST_SEPARATOR.join(movie_obj.get('genre')),
-        country=LIST_SEPARATOR.join(movie_obj.get('country')),
-        rating=movie_obj.get('rating')
-    )
-
-    imdb_data_dict['director'] = LIST_SEPARATOR.join(
-        [director.get('name') for director in movie_obj.get('director')]
-    )
-
-    if movie_obj.get('cast'):
-        imdb_data_dict['cast'] = LIST_SEPARATOR.join(
-            [cast.get('name') for cast in movie_obj.get('cast')[:10]]
-        )
-
-    else:
-        imdb_data_dict['cast'] = None
-
-    runtime = movie_obj.get('runtime')
-    if runtime:
-        # https://github.com/alberanid/imdbpy/blob/master/imdb/parser/mobile/__init__.py#L411
-        if '::(' in runtime[0]:
-            runtime = runtime[0].split('::(')[0]
-        else:
-            runtime = runtime[0].split(':')[-1]
-        imdb_data_dict['runtime'] = int(runtime)
-    else:
-        imdb_data_dict['runtime'] = None
-
-    return imdb_data_dict
 
 
 def _titles_match(pk_title, imdb_title):
@@ -252,24 +255,3 @@ def _titles_match(pk_title, imdb_title):
         (pk_title.startswith('the') and pk_title[3:] == imdb_title) or
         (pk_title.replace('and', '') == imdb_title)
     )
-
-
-def _normalize_title(title):
-    """
-    Transform movie title so that it's ready for string comparison.
-
-    Remove everything but alphanumeric chars from the string and
-    replaces unicode characters with their ascii equivalents.
-
-    :param title: Movie title
-    :return: Normalized title
-    """
-    # Convert all unicode chars to ASCII
-    ascii_title = unicodedata.normalize('NFKD', title).encode('ascii',
-                                                              'ignore')
-
-    # Remove all non-alnum chars
-    pattern = re.compile('[\W_]+')
-    normalized_title = pattern.sub('', ascii_title.lower())
-
-    return normalized_title
