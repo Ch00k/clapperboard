@@ -182,7 +182,7 @@ def get_movie_imdb_data(**kwargs):
     # Normalize
     title = title[0]
     rating = float(rating[0].strip()) if rating else None
-    genre = LIST_SEPARATOR.join([genre.strip() for genre in genre])
+    genre = LIST_SEPARATOR.join([g.strip() for g in genre])
     director = LIST_SEPARATOR.join(director)
     cast = LIST_SEPARATOR.join(cast)
     country = LIST_SEPARATOR.join(country)

@@ -59,8 +59,9 @@ def db_seed():
         db.session.commit()
     except IntegrityError as e:
         db.session.rollback()
-        raise StandardError(e.message +
-                            '\nPerhaps database has already been seeded')
+        raise RuntimeError(
+            "{}\nAssuming database has already been seeded".format(str(e))
+        )
 
 
 @manager.command
