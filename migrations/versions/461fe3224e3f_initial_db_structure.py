@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """Initial db structure
 
 Revision ID: 461fe3224e3f
@@ -12,6 +14,8 @@ down_revision = None
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.sql import table, column
+from sqlalchemy import String, Integer, DateTime
 
 
 def upgrade():
@@ -77,7 +81,78 @@ def upgrade():
         sa.ForeignKeyConstraint(['theatre_id'], ['theatre.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
-    # end Alembic commands #
+
+    theatres_table = table(
+        'theatre',
+        column('id', Integer),
+        column('name', String),
+        column('en_name', String),
+        column('url_code', String),
+        column('st_url_code', String)
+    )
+    technologies_table = table(
+        'technology',
+        column('id', Integer),
+        column('code', String),
+        column('name', String)
+    )
+    last_fetched_table = table(
+        'last_fetched',
+        column('id', Integer),
+        column('date_time', DateTime),
+        column('theatre_id', Integer)
+    )
+
+    technologies = [
+        ('2d', '2D'),
+        ('3d', '3D'),
+        ('imax', 'IMAX'),
+        ('imax-3d', 'IMAX 3D'),
+        ('4dx', '4DX')
+    ]
+
+    theatres = [
+        (u'Київ', 'Kyiv', '', 'imax-kiev'),
+        (u'Харків', 'Kharkiv', 'kharkov', 'pk-kharkov'),
+        (u'Львів', 'Lviv', 'lvov', 'pk-lvov'),
+        (u'Одеса (Таїрова)', 'Odesa (Tairova)', 'odessa', 'pk-odessa'),
+        (u'Одеса (Котовського)', 'Odesa (Kotovskoho)', 'odessa2',
+         'pk-odessa2'),
+        (u'Суми', 'Sumy', 'sumy', 'pk-sumy'),
+        (u'Ялта', 'Yalta', 'yalta', 'pk-yalta')
+    ]
+
+    op.bulk_insert(
+        theatres_table,
+        [
+            {
+                'name': t[0],
+                'en_name': t[1],
+                'url_code': t[2],
+                'st_url_code': t[3]
+            } for t in theatres
+        ]
+    )
+    op.bulk_insert(
+        technologies_table,
+        [
+            {
+                'code': t[0],
+                'name': t[1]
+            } for t in technologies
+        ]
+    )
+
+    op.bulk_insert(
+        last_fetched_table,
+        [
+            {
+                'date_time': None,
+                'theatre_id': l
+            } for l in range(1, len(theatres) + 1)
+        ]
+    )
+    # ### end Alembic commands ###
 
 
 def downgrade():

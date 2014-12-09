@@ -2,8 +2,9 @@ from celery.schedules import crontab
 from kombu import Exchange, Queue
 
 ENVIRONMENT = 'development'
-SQLALCHEMY_DATABASE_URI = ('mysql+pymysql://clap_user:clap_user_pw@localhost/'
-                           'clap_db_v2?unix_socket=/tmp/mysql.sock')
+SQLALCHEMY_DATABASE_URI = (
+    'mysql+pymysql://clap_user:clap_user_pw@localhost/clap_db_v2'
+    '?unix_socket=/tmp/mysql.sock&charset=utf8')
 CORS_HEADERS = 'Content-Type'
 CORS_RESOURCES = {r'/*': {'origins': '*'}}
 AUTH_TOKEN = '123qwe'
