@@ -8,7 +8,6 @@ class NamespaceOpts(SchemaOpts):
 
     def __init__(self, meta):
         SchemaOpts.__init__(self, meta)
-        self.skip_missing = True
         self.name = getattr(meta, 'name', None)
         self.plural_name = getattr(meta, 'plural_name', self.name + 's')
 
@@ -29,10 +28,6 @@ class NamespacedSchema(Schema):
         return data
 
 
-# TODO W/a for https://github.com/sloria/marshmallow/issues/83
-NUMBER_FIELD_DEFAULT = None
-
-
 class MovieSchema(NamespacedSchema):
     class Meta:
         name = 'movie'
@@ -40,22 +35,22 @@ class MovieSchema(NamespacedSchema):
     id = fields.Integer()
     title = fields.String()
     url_code = fields.String()
-    show_start = fields.String()
-    show_end = fields.String()
+    show_start = fields.String(default=None)
+    show_end = fields.String(default=None)
 
 
 class IMDBDataSchema(NamespacedSchema):
     class Meta:
         name = 'imdb_data'
 
-    id = fields.Integer(default=NUMBER_FIELD_DEFAULT)
+    id = fields.Integer(default=None)
     title = fields.String()
     genre = fields.String()
     country = fields.String()
     director = fields.String()
     cast = fields.String()
-    runtime = fields.Integer(default=NUMBER_FIELD_DEFAULT)
-    rating = fields.Float(default=NUMBER_FIELD_DEFAULT)
+    runtime = fields.Integer(default=None)
+    rating = fields.Float(default=None)
 
 
 class ShowTimeSchema(NamespacedSchema):
