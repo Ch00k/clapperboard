@@ -33,12 +33,6 @@
   shell: chdir={{ dist_location }}
          CLPBRD_CONFIG={{ base_dir }}/config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage db upgrade
 
-- name: Seed database
-  # command won't work here because it does not read env vars
-  shell: chdir={{ dist_location }}
-         CLPBRD_CONFIG={{ base_dir }}/config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage db_seed
-  ignore_errors: yes
-
 - name: Shutdown supervisor
   command: "{{ base_dir }}/{{ venv_name }}/bin/supervisorctl -c {{ base_dir }}/cb_supervisor.conf shutdown"
 
@@ -49,10 +43,10 @@
 #   # command won't work here because it does not read env vars
 #   shell: chdir={{ dist_location }} CLPBRD_CONFIG={{ base_dir }}/config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage fetch
 
-- name: Rollbar deployment notification
-  rollbar_deployment: token={{ rollbar_token }}
-                      environment={{ env }}
-                      revision=new,
-                      user=Ch00k,
-                      rollbar_user=Ch00k,
-                      comment="New version deployed!"
+# - name: Rollbar deployment notification
+#   rollbar_deployment: token={{ rollbar_token }}
+#                       environment={{ env }}
+#                       revision=new,
+#                       user=Ch00k,
+#                       rollbar_user=Ch00k,
+#                       comment="New version deployed!"
