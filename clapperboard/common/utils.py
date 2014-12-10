@@ -82,6 +82,8 @@ def get_pk_data(theatres, force):
                 movies.append(movie)
                 seen_movies.add(pk_movie['@id'])
         for day in showtimes_data:
+            if 'show' not in day:
+                continue
             for pk_showtime in day['show']:
                 if pk_showtime['@order-url']:
                     showtime = dict(
