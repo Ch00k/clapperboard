@@ -81,9 +81,13 @@ def get_pk_data(theatres, force):
                 )
                 movies.append(movie)
                 seen_movies.add(pk_movie['@id'])
+
         for day in showtimes_data:
             if 'show' not in day:
                 continue
+            # TODO: There must be an option to avoid this in xmltodict
+            if not isinstance(day['show'], list):
+                day['show'] = [day['show']]
             for pk_showtime in day['show']:
                 if pk_showtime['@order-url']:
                     showtime = dict(
