@@ -5,7 +5,7 @@
        version={{ git_tag }}
 
 - name: Create virtualenv and install requirements
-  pip: requirements={{ dist_location }}/requirements.txt
+  pip: requirements={{ dist_location }}/prod-requirements.txt
        virtualenv={{ base_dir }}/{{ venv_name }}
 
 - name: Install application
