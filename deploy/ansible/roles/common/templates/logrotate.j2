@@ -1,0 +1,7 @@
+{{ write_movie_data_worker_log_file }} {
+    missingok
+    sharedscripts
+    postrotate
+        /etc/init.d/syslog-ng reload > /dev/null 2>&1 || true
+    endscript
+}
