@@ -9,6 +9,7 @@ import xmltodict
 from lxml import html as lh
 
 
+logging.getLogger('requests').setLevel(logging.WARNING)
 log = logging.getLogger(__name__)
 
 LIST_SEPARATOR = ', '
