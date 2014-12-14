@@ -37,5 +37,8 @@
   template: src=logrotate.j2
             dest={{ logrotate_config_dir }}/clapperboard
 
-- name: Restart supervised services
-  command: "supervisorctl -c {{ base_dir }}/cb_supervisor.conf restart all"
+- name: Shutdown supervisor
+  command: "supervisorctl -c {{ base_dir }}/cb_supervisor.conf shutdown"
+
+- name: Start supervisor
+  command: "supervisord -c {{ base_dir }}/cb_supervisor.conf"
