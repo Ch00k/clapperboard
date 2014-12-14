@@ -33,6 +33,11 @@
   shell: chdir={{ dist_location }}
          CLPBRD_CONFIG={{ base_dir }}/config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage db upgrade
 
+- name: Install logrotate configuration
+  sudo: True
+  template: src=logrotate.j2
+            dest={{ logrotate_config_dir }}/clapperboard
+
 - name: Shutdown supervisor
   command: "{{ base_dir }}/{{ venv_name }}/bin/supervisorctl -c {{ base_dir }}/cb_supervisor.conf shutdown"
 
