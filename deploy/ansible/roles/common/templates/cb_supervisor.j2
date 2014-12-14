@@ -35,7 +35,7 @@ stopwaitsecs = 600
 killasgroup = true
 
 [program:api]
-command = gunicorn -b 127.0.0.1:{{ port }} clapperboard:flask_app
+command = {{ base_dir }}/{{ venv_name }}/bin/gunicorn -b 127.0.0.1:{{ port }} clapperboard:flask_app
 environment = CLPBRD_CONFIG={{ base_dir }}/config.py
 numprocs = 1
 stdout_logfile = {{ api_log_file }}

@@ -1,4 +1,5 @@
 -r requirements.txt
 
-supervisor
-git+https://github.com/benoitc/gunicorn.git#egg=gunicorn
+# supervisor does not work with Python 3
+#supervisor
+gunicorn
