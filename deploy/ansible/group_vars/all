@@ -14,9 +14,9 @@ config_file: "{{ base_dir }}/config.py"
 
 port: "8001"
 
-sqlalchemy_db_uri: "mysql://clap_user:clap_user_pw@localhost/clap_db_v2?unix_socket=/var/run/mysqld/mysqld.sock&charset=utf8"
+sqlalchemy_db_uri: "mysql+pymysql://clap_user:clap_user_pw@localhost/clap_db_v2?unix_socket=/var/run/mysqld/mysqld.sock&charset=utf8"
 amqp_uri: "amqp://"
-pk_fetch_frequency: 30
+pk_fetch_frequency: 15
 
 log_dir: "/var/log/clapperboard_v2"
 beat_log_file: "{{ log_dir }}/beat.log"
@@ -36,3 +36,5 @@ env: "production"
 rollbar_token: "123qwe"
 
 logrotate_config_dir: "/etc/logrotate.d"
+
+domain_name: "clpbrd.net"

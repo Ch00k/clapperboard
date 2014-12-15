@@ -28,7 +28,6 @@
     - config
 
 - name: Migrate database
-  # command won't work here because it does not read env vars
   shell: chdir={{ dist_location }}
          CLPBRD_CONFIG={{ base_dir }}/config.py {{ base_dir }}/{{ venv_name }}/bin/cb_manage db upgrade
 
@@ -42,3 +41,15 @@
 
 - name: Start supervisor
   command: "supervisord -c {{ base_dir }}/cb_supervisor.conf"
+
+- name: Create nginx sites directory
+  sudo: True
+  file: state=directory
+        path=/etc/nginx/sites
+
+- name: Copy nginx site config
+  sudo: True
+  template: src=nginx.j2
+            dest=/etc/nginx/sites/clapperboard_v2
+  notify:
+    - reload nginx
