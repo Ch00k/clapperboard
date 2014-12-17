@@ -1,7 +1,7 @@
 from flask import Flask
 
 from clapperboard.models import db, migrate
-from clapperboard.resources import api, cors
+from clapperboard.resources import api, jwt, cors
 from clapperboard.workers import celery
 
 
@@ -14,6 +14,7 @@ def create_apps():
     db.init_app(app)
     migrate.init_app(app, db)
     api.init_app(app)
+    jwt.init_app(app)
     cors.init_app(app)
     celery.init_app(app)
 

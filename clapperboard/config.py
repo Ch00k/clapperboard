@@ -7,7 +7,9 @@ SQLALCHEMY_DATABASE_URI = (
     '?unix_socket=/tmp/mysql.sock&charset=utf8')
 CORS_HEADERS = 'Content-Type'
 CORS_RESOURCES = {r'/*': {'origins': '*'}}
+# TODO: This is no longer used
 AUTH_TOKEN = '123qwe'
+SECRET_KEY = '123qwe'
 DEBUG = True
 SQLALCHEMY_ECHO = False
 

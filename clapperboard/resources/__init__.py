@@ -1,6 +1,7 @@
 from flask.ext.restful import Api, abort
 from flask.ext.restful.representations.json import settings as json_settings
 
+from flask.ext.jwt import JWT, jwt_required
 from flask.ext.cors import CORS
 
 from webargs.flaskparser import parser
@@ -17,6 +18,8 @@ from clapperboard.resources.theatre import TheatreAPI, TheatreListAPI
 from clapperboard.resources.technology import TechnologyAPI, TechnologyListAPI
 from clapperboard.resources.user import UserAPI
 
+from clapperboard.models.user import User
+
 
 class ClapApi(Api):
     def make_response(self, data, *args, **kwargs):
@@ -28,7 +31,8 @@ class ClapApi(Api):
         return super(ClapApi, self).make_response(data, *args, **kwargs)
 
 
-api = ClapApi()
+api = ClapApi(decorators=[jwt_required()])
+jwt = JWT()
 cors = CORS()
 
 
@@ -61,3 +65,15 @@ def webargs_error_handler(err):
                                                   'Invalid Request')
     )
     abort(code, status='error', code=code, message=msg)
+
+
+@jwt.authentication_handler
+def authenticate(username, password):
+    u = User.query.filter_by(username=username).first()
+    if u and u.check_password(password):
+        return u
+
+
+@jwt.user_handler
+def load_user(payload):
+    return User.query.get(payload['user_id'])

@@ -20,6 +20,7 @@ setup(
         'flask-migrate',
         'flask-restful',
         'flask-sqlalchemy',
+        'flask-jwt',
         'webargs',
         'marshmallow',
         'requests',

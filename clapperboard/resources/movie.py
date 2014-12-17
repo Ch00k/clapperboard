@@ -1,6 +1,5 @@
 from flask.ext.restful import Resource, abort
 
-
 from webargs import Arg
 from webargs.flaskparser import use_args
 
