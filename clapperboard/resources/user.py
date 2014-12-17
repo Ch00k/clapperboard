@@ -27,7 +27,6 @@ class UserAPI(Resource):
 
     @use_args(user_json)
     def post(self, args):
-        print(args)
         email = args['user'].get('email', None)
         if User.query.filter_by(username=args['user']['username']).first():
             abort(
