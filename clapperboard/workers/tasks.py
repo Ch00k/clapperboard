@@ -29,10 +29,12 @@ def _insert_movie_record(movie_data_dict):
         else:
             movie_record.imdb_data = IMDBData(**movie_imdb_data)
     else:
-        log.warning(
-            'IMDB data not found for movie "{}"'
-            .format(movie_data_dict['url_code'])
+        msg = 'IMDB data not found for movie "{}"'.format(
+            movie_data_dict['url_code']
         )
+        # TODO: Combine this into one custom logger class
+        log.warning(msg)
+        celery_app.tracker.report_message(msg)
 
     db.session.add(movie_record)
 
@@ -53,9 +55,9 @@ def _insert_movie_record_imdb_data(record):
         else:
             record.imdb_data = IMDBData(**movie_imdb_data)
     else:
-        log.warning(
-            'IMDB data not found for movie "{}"'.format(record.url_code)
-        )
+        msg = 'IMDB data not found for movie "{}"'.format(record.url_code)
+        log.warning(msg)
+        celery_app.tracker.report_message(msg)
 
 
 def _update_movie_record_imdb_data(record):
@@ -156,8 +158,11 @@ def write_movie_data(force):
             new_showtimes += 1
 
     if showtimes_to_delete:
-        ShowTime.query.filter(ShowTime.id.in_(showtimes_to_delete))\
-            .delete(synchronize_session=False)
+        ShowTime.query.filter(
+            ShowTime.id.in_(showtimes_to_delete)
+        ).delete(
+            synchronize_session=False
+        )
 
     if showtimes_to_add:
         db.session.add_all(showtimes_to_add)
