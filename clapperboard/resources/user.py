@@ -1,5 +1,7 @@
 from flask.ext.restful import Resource, abort
 
+from flask.ext.jwt import current_user
+
 from webargs import Arg
 from webargs.flaskparser import use_args
 
@@ -64,7 +66,8 @@ class UserAPI(Resource):
 
     @use_args(user_edit_json)
     def put(self, args, user_id):
-        print(args)
+        if current_user.id != user_id:
+            abort(401)
         user = User.query.get_or_abort(
             user_id, error_msg=USER_NOT_FOUND.format(user_id)
         )
