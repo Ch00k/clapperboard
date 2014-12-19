@@ -21,6 +21,7 @@ setup(
         'flask-restful',
         'flask-sqlalchemy',
         'flask-jwt',
+        'blinker',
         'webargs',
         'marshmallow',
         'requests',

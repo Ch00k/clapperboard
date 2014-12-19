@@ -16,7 +16,7 @@ from clapperboard.resources.movie import (
 from clapperboard.resources.showtime import ShowTimeAPI, ShowTimesListAPI
 from clapperboard.resources.theatre import TheatreAPI, TheatreListAPI
 from clapperboard.resources.technology import TechnologyAPI, TechnologyListAPI
-from clapperboard.resources.user import UserAPI
+from clapperboard.resources.user import UserAPI, UserListAPI
 
 from clapperboard.models.user import User
 
@@ -32,6 +32,7 @@ class ClapApi(Api):
 
 
 api = ClapApi(decorators=[jwt_required()])
+anon_api = ClapApi()
 jwt = JWT()
 cors = CORS()
 
@@ -49,7 +50,8 @@ api.add_resource(TheatreAPI, '/theatres/<int:theatre_id>')
 api.add_resource(TechnologyListAPI, '/technologies')
 api.add_resource(TechnologyAPI, '/technologies/<int:technology_id>')
 
-api.add_resource(UserAPI, '/users')
+anon_api.add_resource(UserListAPI, '/users')
+api.add_resource(UserAPI, '/users/<int:user_id>')
 
 json_settings['indent'] = 4
 
@@ -61,8 +63,8 @@ def webargs_error_handler(err):
     a JSON error response to the client.
     """
     code, msg = (
-        getattr(err, 'status_code', 400), getattr(err, 'message',
-                                                  'Invalid Request')
+        getattr(err, 'status_code', 400),
+        getattr(err, 'message',  'Invalid Request')
     )
     abort(code, status='error', code=code, message=msg)
 

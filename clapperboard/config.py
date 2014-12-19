@@ -1,5 +1,3 @@
-import os
-
 from celery.schedules import crontab
 from kombu import Exchange, Queue
 
@@ -55,4 +53,4 @@ CELERY_ROUTES = {
     }
 }
 
-ROLLBAR_TOKEN = os.environ.get('CLPBRD_ROLLBAR_TOKEN', '123qwe')
+ROLLBAR_TOKEN = '123qwe'

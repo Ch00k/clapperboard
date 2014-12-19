@@ -1,8 +1,9 @@
 from flask import Flask
 
 from clapperboard.models import db, migrate
-from clapperboard.resources import api, jwt, cors
+from clapperboard.resources import api, anon_api, jwt, cors
 from clapperboard.workers import celery
+from clapperboard.tracker import tracker
 
 
 def create_apps():
@@ -14,9 +15,11 @@ def create_apps():
     db.init_app(app)
     migrate.init_app(app, db)
     api.init_app(app)
+    anon_api.init_app(app)
     jwt.init_app(app)
     cors.init_app(app)
     celery.init_app(app)
+    tracker.init_app(app)
 
     return app, celery
 

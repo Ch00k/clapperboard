@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import os
+
 import flask
 from celery import Celery
 import rollbar
@@ -38,4 +40,9 @@ class FlaskCelery(Celery):
         self.app = app
         self.config_from_object(app.config)
         # TODO: There should be a better way to initialize rollbar app-wide
-        self.tracker.init(self.conf.ROLLBAR_TOKEN, self.conf.ENVIRONMENT)
+        self.tracker.init(
+            self.conf.ROLLBAR_TOKEN,
+            self.conf.ENVIRONMENT,
+            root=os.path.dirname(os.path.realpath(__file__)),
+            allow_logging_basic_config=False
+        )
