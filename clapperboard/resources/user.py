@@ -75,7 +75,7 @@ class UserAPI(Resource):
             if (user.username != args['user']['username'] and
                     User.query.filter_by(
                         username=args['user']['username']
-                    ).first()):
+                    ).first()):  # noqa
                 abort(400, status='error', code=400, message=USER_NAME_EXISTS)
             else:
                 user.username = args['user']['username']
@@ -83,7 +83,7 @@ class UserAPI(Resource):
             if (user.email != args['user']['email'] and
                     User.query.filter_by(
                         email=args['user']['email']
-                    ).first()):
+                    ).first()):  # noqa
                 abort(400, status='error', code=400, message=USER_EMAIL_EXISTS)
             else:
                 user.email = args['user']['email']
