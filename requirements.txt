@@ -3,6 +3,8 @@ flask-restful
 flask-sqlalchemy
 flask-migrate
 flask-cors
+flask-jwt
+blinker
 marshmallow
 webargs
 requests

@@ -84,3 +84,13 @@ class TechnologySchema(NamespacedSchema):
     id = fields.Integer()
     code = fields.String()
     name = fields.String()
+
+
+class UserSchema(NamespacedSchema):
+    class Meta:
+        name = 'user'
+
+    id = fields.Integer()
+    username = fields.String()
+    email = fields.Email()
+    password = fields.String()

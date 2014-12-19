@@ -1,3 +1,5 @@
+import os
+
 from celery.schedules import crontab
 from kombu import Exchange, Queue
 
@@ -7,6 +9,7 @@ SQLALCHEMY_DATABASE_URI = '{{ sqlalchemy_db_uri }}'
 CORS_HEADERS = 'Content-Type'
 CORS_RESOURCES = {r'/*': {'origins': '{{ cors_origins }}'}}
 AUTH_TOKEN = '{{ auth_token }}'
+SECRET_KEY = '{{ secret_key }}'
 DEBUG = {{ debug }}
 SQLALCHEMY_ECHO = {{ sql_dedug }}
 
@@ -50,4 +53,4 @@ CELERY_ROUTES = {
     }
 }
 
-ROLLBAR_TOKEN = '{{ rollbar_token }}'
+ROLLBAR_TOKEN = os.environ.get('CLPBRD_ROLLBAR_TOKEN', '{{ rollbar_token }}')

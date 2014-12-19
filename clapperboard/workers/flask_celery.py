@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import os
+
 import flask
 from celery import Celery
 import rollbar
@@ -10,6 +12,7 @@ class FlaskCelery(Celery):
 
         super(FlaskCelery, self).__init__(*args, **kwargs)
         self.patch_task()
+        self.tracker = rollbar
 
         if 'app' in kwargs:
             self.init_app(kwargs['app'])
@@ -29,13 +32,17 @@ class FlaskCelery(Celery):
                         return TaskBase.__call__(self, *args, **kwargs)
 
             def on_failure(self, exc, task_id, args, kwargs, einfo):
-                if _celery.conf.ENVIRONMENT == 'production':
-                    rollbar.init(_celery.conf.ROLLBAR_TOKEN,
-                                 _celery.conf.ENVIRONMENT)
-                    rollbar.report_exc_info()
+                _celery.tracker.report_exc_info()
 
         self.Task = ContextTask
 
     def init_app(self, app):
         self.app = app
         self.config_from_object(app.config)
+        # TODO: There should be a better way to initialize rollbar app-wide
+        self.tracker.init(
+            self.conf.ROLLBAR_TOKEN,
+            self.conf.ENVIRONMENT,
+            root=os.path.dirname(os.path.realpath(__file__)),
+            allow_logging_basic_config=False
+        )
