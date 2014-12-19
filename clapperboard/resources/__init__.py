@@ -64,7 +64,7 @@ def webargs_error_handler(err):
     """
     code, msg = (
         getattr(err, 'status_code', 400),
-        getattr(err, 'message',  'Invalid Request')
+        getattr(err, 'message', 'Invalid Request')
     )
     abort(code, status='error', code=code, message=msg)
 

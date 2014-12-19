@@ -91,5 +91,6 @@ class UserSchema(NamespacedSchema):
         name = 'user'
 
     id = fields.Integer()
+    username = fields.String()
     email = fields.Email()
     password = fields.String()

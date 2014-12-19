@@ -39,30 +39,30 @@ user_edit_json = {
 class UserListAPI(Resource):
     def __init__(self):
         super(UserListAPI, self).__init__()
-        self.user_schema = UserSchema()
+        self.user_schema = UserSchema(exclude=('password',))
 
     @use_args(user_create_json)
     def post(self, args):
-        print(args)
         email = args['user'].get('email')
         if User.query.filter_by(username=args['user']['username']).first():
             abort(400, status='error', code=400, message=USER_NAME_EXISTS)
         if email and User.query.filter_by(email=email).first():
             abort(400, status='error', code=400, message=USER_EMAIL_EXISTS)
-        db.session.add(
-            User(
-                username=args['user']['username'],
-                email=email,
-                password=args['user']['password']
-            )
+        user = User(
+            username=args['user']['username'],
+            email=email,
+            password=args['user']['password']
         )
+        db.session.add(user)
         db.session.commit()
+        res = self.user_schema.dump(user)
+        return res.data
 
 
 class UserAPI(Resource):
     def __init__(self):
         super(UserAPI, self).__init__()
-        self.user_schema = UserSchema()
+        self.user_schema = UserSchema(exclude=('password',))
 
     @use_args(user_edit_json)
     def put(self, args, user_id):
@@ -82,7 +82,7 @@ class UserAPI(Resource):
         if 'email' in args['user']:
             if (user.email != args['user']['email'] and
                     User.query.filter_by(
-                        username=args['user']['email']
+                        email=args['user']['email']
                     ).first()):
                 abort(400, status='error', code=400, message=USER_EMAIL_EXISTS)
             else:
@@ -90,3 +90,5 @@ class UserAPI(Resource):
         if 'password' in args['user']:
             user.password = args['user']['password']
         db.session.commit()
+        res = self.user_schema.dump(user)
+        return res.data

@@ -10,6 +10,10 @@ CORS_RESOURCES = {r'/*': {'origins': '*'}}
 # TODO: This is no longer used
 AUTH_TOKEN = '123qwe'
 SECRET_KEY = '123qwe'
+
+JWT_EXPIRATION_DELTA = 43200
+JWT_LEEWAY = 60
+
 DEBUG = True
 SQLALCHEMY_ECHO = False
 
