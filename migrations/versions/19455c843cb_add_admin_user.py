@@ -32,7 +32,10 @@ def upgrade():
             {
                 'username': 'admin',
                 'email': 'admin@clpbrd.net',
-                'password': 'clapperboard_changeme'
+                # TODO: Find a better way to do this
+                # clapperboard_changeme
+                'password': ('pbkdf2:sha1:1000$JPMAoAxi$33c083a'
+                             '4015ad939d386a8af22e49fa6fc8fe624')
             }
         ]
     )
