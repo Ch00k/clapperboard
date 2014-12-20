@@ -1,4 +1,8 @@
 ---
+- name: Verify sudo access
+  shell: ls /dev/null
+  sudo: True
+
 - name: Clone repository
   git: repo={{ git_repo }}
        dest={{ dist_location }}
