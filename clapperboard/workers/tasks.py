@@ -39,7 +39,7 @@ def _insert_movie_record(movie_data_dict):
         if (not movie_record.meta or not movie_record.meta.data or
                 not json.loads(movie_record.meta.data)
                         .get('tracker_ignore_imdb_not_found')):
-            celery_app.tracker.report_message(msg)
+            celery_app.tracker.report_message(msg, 'warning')
 
     db.session.add(movie_record)
 
@@ -65,7 +65,7 @@ def _insert_movie_record_imdb_data(record):
         if (not record.meta or not record.meta.data or
                 not json.loads(record.meta.data)
                         .get('tracker_ignore_imdb_not_found')):
-            celery_app.tracker.report_message(msg)
+            celery_app.tracker.report_message(msg, 'warning')
 
 
 def _update_movie_record_imdb_data(record):

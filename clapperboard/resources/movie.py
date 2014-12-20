@@ -44,9 +44,16 @@ imdb_data_json = {
     )
 }
 
-movie_metadata_json = {
+movie_metadata_create_json = {
     'metadata': Arg(
         dict, target='json', required=True,
+        validate=movie_metadata_json_validator
+    )
+}
+
+movie_metadata_edit_json = {
+    'metadata': Arg(
+        dict, target='json',
         validate=movie_metadata_json_validator
     )
 }
@@ -97,7 +104,7 @@ class MovieMetaDataAPI(Resource):
         }
 
     @admin_required
-    @use_args(movie_metadata_json)
+    @use_args(movie_metadata_create_json)
     def post(self, args, movie_id):
         print(args)
         movie = Movie.query.get_or_abort(
@@ -112,6 +119,27 @@ class MovieMetaDataAPI(Resource):
         movie.meta = MovieMetadata(json.dumps(args['metadata']), movie_id)
         db.session.commit()
         return args
+
+    @admin_required
+    @use_args(movie_metadata_edit_json)
+    def put(self, args, movie_id):
+        movie = Movie.query.get_or_abort(
+            movie_id, error_msg=MOVIE_NOT_FOUND.format(movie_id)
+        )
+        if not movie.meta:
+            abort(
+                404, status='error', code=404,
+                message='Metadata for movie {} not found'.format(movie_id)
+            )
+
+        metadata_dict = json.loads(movie.meta.data) if movie.meta.data else {}
+
+        # TODO: Won't work in Python 2
+        for k, v in args['metadata'].items():
+            metadata_dict[k] = v
+
+        movie.meta.data = json.dumps(metadata_dict)
+        db.session.commit()
 
 
 class MovieIMDBDataAPI(Resource):
