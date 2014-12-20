@@ -1,3 +1,5 @@
+import json
+
 from flask.ext.restful import Resource, abort
 
 from webargs import Arg
@@ -11,6 +13,7 @@ from clapperboard.resources.common.schemas import (
 )
 from clapperboard.models import db
 from clapperboard.models.movie import Movie
+from clapperboard.models.movie_metadata import MovieMetadata
 from clapperboard.models.imdb_data import IMDBData
 from clapperboard.models.show_time import ShowTime
 
@@ -22,7 +25,8 @@ from clapperboard.resources.common.errors import (
 
 from clapperboard.resources.common.arg_validators import (
     imdb_data_json_validator,
-    movie_list_q_params_validator
+    movie_list_q_params_validator,
+    movie_metadata_json_validator
 )
 
 from clapperboard.common.utils import get_movie_imdb_data
@@ -34,10 +38,16 @@ movie_list_q_params = {
     )
 }
 
-
 imdb_data_json = {
     'imdb_data': Arg(
         dict, target='json', required=True, validate=imdb_data_json_validator
+    )
+}
+
+movie_metadata_json = {
+    'metadata': Arg(
+        dict, target='json', required=True,
+        validate=movie_metadata_json_validator
     )
 }
 
@@ -70,6 +80,36 @@ class MovieAPI(Resource):
         )
         res = self.movie_schema.dump(movie)
         return res.data
+
+
+class MovieMetaDataAPI(Resource):
+    def __init__(self):
+        super(MovieMetaDataAPI, self).__init__()
+
+    def get(self, movie_id):
+        movie = Movie.query.get_or_abort(
+            movie_id, error_msg=MOVIE_NOT_FOUND.format(movie_id)
+        )
+
+        return {
+            'metadata': json.loads(movie.meta.data) if movie.meta else {}
+        }
+
+    @use_args(movie_metadata_json)
+    def post(self, args, movie_id):
+        print(args)
+        movie = Movie.query.get_or_abort(
+            movie_id, error_msg=MOVIE_NOT_FOUND.format(movie_id)
+        )
+        if movie.meta:
+            abort(
+                400, status='error', code=400,
+                message='Metadata for movie {} already exists'
+                .format(movie_id)
+            )
+        movie.meta = MovieMetadata(json.dumps(args['metadata']), movie_id)
+        db.session.commit()
+        return args
 
 
 class MovieIMDBDataAPI(Resource):
