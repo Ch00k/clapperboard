@@ -11,6 +11,7 @@ class Movie(db.Model):
     show_start = db.Column(db.Date)
     show_end = db.Column(db.Date)
     imdb_id = db.Column(db.Integer, db.ForeignKey('imdb_data.id'))
+    meta = db.relationship('MovieMetadata', backref='movie', uselist=False)
     show_times = db.relationship('ShowTime', backref='movie', lazy='dynamic')
 
     def __init__(self, id, title, url_code, show_start, show_end):

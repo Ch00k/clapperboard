@@ -18,7 +18,10 @@ def fetch():
     """
     write_movie_data.s(
         not flask_app.config['RELY_ON_LAST_MODIFIED']
-    ).apply_async(queue='fetch_pk_data', routing_key='fetch_pk_data')
+    ).apply_async(
+        queue='fetch_pk_data',
+        routing_key='fetch_pk_data'
+    )
 
 
 @manager.shell

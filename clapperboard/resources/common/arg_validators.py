@@ -31,6 +31,18 @@ def movie_list_q_params_validator(val):
         _validation_error(msg)
 
 
+def movie_metadata_json_validator(val):
+    if ('tracker_ignore_imdb_not_found' in val and
+            not isinstance(val['tracker_ignore_imdb_not_found'], bool)):
+        _validation_error(
+            TYPE_MISMATCH.format(
+                __type_map__[bool],
+                'tracker_ignore_imdb_not_found',
+                __type_map__[type(val['tracker_ignore_imdb_not_found'])]
+            )
+        )
+
+
 def user_create_json_validator(val):
     params = ('username', 'password')
     msg = PARAM_NOT_IN_USER_OBJECT

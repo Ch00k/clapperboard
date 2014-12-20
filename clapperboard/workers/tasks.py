@@ -1,7 +1,9 @@
+import json
 import logging
 
 from clapperboard.models import db
 from clapperboard.models.movie import Movie
+from clapperboard.models.movie_metadata import MovieMetadata
 from clapperboard.models.imdb_data import IMDBData
 from clapperboard.models.show_time import ShowTime
 from clapperboard.models.theatre import Theatre
@@ -34,7 +36,10 @@ def _insert_movie_record(movie_data_dict):
         )
         # TODO: Combine this into one custom logger class
         log.warning(msg)
-        celery_app.tracker.report_message(msg)
+        if (not movie_record.meta or not movie_record.meta.data or
+                not json.loads(movie_record.meta.data)
+                        .get('tracker_ignore_imdb_not_found')):
+            celery_app.tracker.report_message(msg)
 
     db.session.add(movie_record)
 
@@ -57,7 +62,10 @@ def _insert_movie_record_imdb_data(record):
     else:
         msg = 'IMDB data not found for movie "{}"'.format(record.url_code)
         log.warning(msg)
-        celery_app.tracker.report_message(msg)
+        if (not record.meta or not record.meta.data or
+                not json.loads(record.meta.data)
+                        .get('tracker_ignore_imdb_not_found')):
+            celery_app.tracker.report_message(msg)
 
 
 def _update_movie_record_imdb_data(record):
