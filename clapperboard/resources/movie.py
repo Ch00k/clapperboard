@@ -86,6 +86,7 @@ class MovieMetaDataAPI(Resource):
     def __init__(self):
         super(MovieMetaDataAPI, self).__init__()
 
+    @admin_required
     def get(self, movie_id):
         movie = Movie.query.get_or_abort(
             movie_id, error_msg=MOVIE_NOT_FOUND.format(movie_id)
@@ -95,6 +96,7 @@ class MovieMetaDataAPI(Resource):
             'metadata': json.loads(movie.meta.data) if movie.meta else {}
         }
 
+    @admin_required
     @use_args(movie_metadata_json)
     def post(self, args, movie_id):
         print(args)
