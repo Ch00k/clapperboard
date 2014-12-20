@@ -3,6 +3,7 @@ from flask.ext.restful import Resource, abort
 from webargs import Arg
 from webargs.flaskparser import use_args
 
+from clapperboard.resources.common import admin_required
 from clapperboard.resources.common.schemas import (
     MovieSchema,
     IMDBDataSchema,
@@ -84,6 +85,7 @@ class MovieIMDBDataAPI(Resource):
         return res.data
 
     # TODO: Make this call async
+    @admin_required
     @use_args(imdb_data_json)
     def post(self, args, movie_id):
         movie = Movie.query.get_or_abort(
@@ -111,6 +113,7 @@ class MovieIMDBDataAPI(Resource):
         db.session.commit()
         return 200
 
+    @admin_required
     @use_args(imdb_data_json)
     def put(self, args, movie_id):
         movie = Movie.query.get_or_abort(
