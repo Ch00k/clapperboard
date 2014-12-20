@@ -6,11 +6,11 @@ class MovieMetadata(db.Model):
     query_class = ClapQuery
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    meta = db.Column(db.String(4096))
+    data = db.Column(db.String(4096))
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
 
-    def __init__(self, meta, movie_id):
-        self.meta = meta
+    def __init__(self, data, movie_id):
+        self.data = data
         self.movie_id = movie_id
 
     def __repr__(self):
