@@ -140,6 +140,9 @@ class MovieMetaDataAPI(Resource):
 
         movie.meta.data = json.dumps(metadata_dict)
         db.session.commit()
+        return {
+            'metadata': json.loads(movie.meta.data) if movie.meta else {}
+        }
 
 
 class MovieIMDBDataAPI(Resource):
