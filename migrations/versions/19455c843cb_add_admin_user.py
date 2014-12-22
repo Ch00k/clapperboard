@@ -32,9 +32,10 @@ def upgrade():
             users_table.insert().values(
                 username='admin',
                 email='admin@clpbrd.net',
+                # clapperboard_changeme
                 password=('pbkdf2:sha1:1000$JPMAoAxi$33c083a'
                           '4015ad939d386a8af22e49fa6fc8fe624')
-                )
+            )
         )
     # ### end Alembic commands ###
 
