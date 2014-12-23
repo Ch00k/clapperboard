@@ -159,7 +159,7 @@ def get_movie_imdb_data(**kwargs):
                 error,
                 ("Could not get IMDB search results for '{}'"
                  .format(kwargs['title']))
-                )
+            )
 
         lh_doc = lh.fromstring(search_resuls.text)
         movie_link = lh_doc.xpath(link_xpath)
