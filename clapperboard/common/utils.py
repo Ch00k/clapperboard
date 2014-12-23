@@ -48,6 +48,7 @@ def get_pk_data(theatres, force):
             # TODO: a temporary workaround for
             # https://github.com/Ch00k/clapperboard/issues/4
             raise RuntimeError(
+                error,
                 "Could not fetch data for {}. Skipping the whole run".format(
                     theatre['en_name'])
             )
@@ -144,13 +145,21 @@ def get_movie_imdb_data(**kwargs):
     headers = {'Accept-Language': 'en-US,en'}
 
     if 'title' in kwargs:
-        search_resuls = requests.get(
-            "{}/{}".format(
-                base_url,
-                search_query_string.format(kwargs['title'])
-            ),
-            headers=headers
-        )
+        try:
+            search_resuls = requests.get(
+                "{}/{}".format(
+                    base_url,
+                    search_query_string.format(kwargs['title'])
+                ),
+                headers=headers
+            )
+        except requests.ConnectionError as error:
+            log.error(error)
+            raise RuntimeError(
+                error,
+                ("Could not get IMDB search results for '{}'"
+                 .format(kwargs['title']))
+                )
 
         lh_doc = lh.fromstring(search_resuls.text)
         movie_link = lh_doc.xpath(link_xpath)
@@ -170,10 +179,17 @@ def get_movie_imdb_data(**kwargs):
             "Must be called with either IMDB movie ID of movie title"
         )
 
-    movie_page = requests.get(
-        movie_url.format(base_url, movie_id),
-        headers=headers
-    )
+    try:
+        movie_page = requests.get(
+            movie_url.format(base_url, movie_id),
+            headers=headers
+        )
+    except requests.ConnectionError as error:
+        log.error(error)
+        raise RuntimeError(
+            error,
+            "Could not get IMDB page for movie '{}'".format(movie_id)
+        )
 
     lh_doc = lh.fromstring(movie_page.text)
 
