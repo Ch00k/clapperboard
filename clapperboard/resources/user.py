@@ -66,7 +66,7 @@ class UserListAPI(Resource):
         from clapperboard.resources import user_verify_email_url
         email = dict(
             to=args['user']['email'],
-            subject='Clapperboard user activation',
+            subject='Clapperboard email verification',
             text=VERIFICATION_EMAIL_BODY.format(
                 user_verify_email_url(payload=payload)
             )

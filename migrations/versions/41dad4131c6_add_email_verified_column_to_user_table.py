@@ -31,6 +31,8 @@ def upgrade():
         sa.Column('password', sa.String),
         sa.Column('email_verified', sa.Boolean)
     )
+
+    # Verify admin's email automatically
     connection.execute(
         users_table.update().where(
             users_table.c.id == 1
