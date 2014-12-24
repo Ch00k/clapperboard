@@ -18,7 +18,6 @@ from clapperboard.resources.showtime import ShowTimeAPI, ShowTimesListAPI
 from clapperboard.resources.theatre import TheatreAPI, TheatreListAPI
 from clapperboard.resources.technology import TechnologyAPI, TechnologyListAPI
 from clapperboard.resources.user import UserAPI, UserListAPI, UserActivateAPI
-
 from clapperboard.models.user import User
 
 

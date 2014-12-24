@@ -11,7 +11,7 @@ from clapperboard.models.technology import Technology
 from clapperboard.models.last_fetched import LastFetched
 from clapperboard.common.utils import get_pk_data, get_movie_imdb_data
 
-from clapperboard import celery_app
+from clapperboard.workers import celery
 
 log = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ def _insert_movie_record(movie_data_dict):
         if (not movie_record.meta or not movie_record.meta.data or
                 not json.loads(movie_record.meta.data)
                         .get('tracker_ignore_imdb_not_found')):
-            celery_app.tracker.report_message(msg, 'warning')
+            celery.tracker.report_message(msg, 'warning')
 
     db.session.add(movie_record)
 
@@ -65,7 +65,7 @@ def _insert_movie_record_imdb_data(record):
         if (not record.meta or not record.meta.data or
                 not json.loads(record.meta.data)
                         .get('tracker_ignore_imdb_not_found')):
-            celery_app.tracker.report_message(msg, 'warning')
+            celery.tracker.report_message(msg, 'warning')
 
 
 def _update_movie_record_imdb_data(record):
@@ -98,7 +98,7 @@ def _update_last_fetched(theatres_dict):
     db.session.commit()
 
 
-@celery_app.task
+@celery.task
 def write_movie_data(force):
     """
     Create new or update existing movie record in database.
