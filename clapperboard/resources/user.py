@@ -88,7 +88,7 @@ class UserAPI(Resource):
             else:
                 user.email = args['user']['email']
         if 'password' in args['user']:
-            user.password = args['user']['password']
+            user.password = user.hash_password(args['user']['password'])
         db.session.commit()
         res = self.user_schema.dump(user)
         return res.data
