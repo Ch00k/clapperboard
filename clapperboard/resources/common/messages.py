@@ -1,5 +1,5 @@
-USER_ACTIVATION_EMAIL = """Hello from Clapperboard!
+VERIFICATION_EMAIL_BODY = """Hello from Clapperboard!
 
-Please follow this link to activate your account:
+Please follow this link to verify your email:
 {}
 """

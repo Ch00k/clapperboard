@@ -13,10 +13,10 @@ from clapperboard.resources.common.errors import (
     USER_NOT_FOUND,
     USER_NAME_EXISTS,
     USER_EMAIL_EXISTS,
-    USER_ALREADY_ACTIVE,
-    INVALID_ACTIVATION_CODE
+    EMAIL_ALREADY_VERIFIED,
+    INVALID_EMAIL_V10N_CODE
 )
-from clapperboard.resources.common.messages import USER_ACTIVATION_EMAIL
+from clapperboard.resources.common.messages import VERIFICATION_EMAIL_BODY
 from clapperboard.resources.common.arg_validators import (
     user_create_json_validator,
     user_edit_json_validator
@@ -63,12 +63,12 @@ class UserListAPI(Resource):
         s = get_serializer()
         payload = s.dumps(args['user']['email'])
 
-        from clapperboard.resources import user_activate_url
+        from clapperboard.resources import user_verify_email_url
         email = dict(
             to=args['user']['email'],
             subject='Clapperboard user activation',
-            text=USER_ACTIVATION_EMAIL.format(
-                user_activate_url(payload=payload)
+            text=VERIFICATION_EMAIL_BODY.format(
+                user_verify_email_url(payload=payload)
             )
         )
         email['h:X-Mailgun-Native-Send'] = True
@@ -79,30 +79,36 @@ class UserListAPI(Resource):
         return res.data
 
 
-class UserActivateAPI(Resource):
+class UserVerifyEmailAPI(Resource):
     def __init__(self):
-        super(UserActivateAPI, self).__init__()
+        super(UserVerifyEmailAPI, self).__init__()
 
     def get(self, payload):
         s = get_serializer()
         try:
-            user_email = s.loads(payload, salt=current_app.config['A8N_SALT'])
+            user_email = s.loads(
+                payload,
+                salt=current_app.config['EMAIL_V10N_SALT'],
+                max_age=current_app.config['EMAIL_V10N_MAX_AGE']
+            )
         except BadSignature:
             abort(404)
 
         user = User.query.filter_by(email=user_email).first()
         if not user:
             abort(404, status='error', code=404,
-                  message=INVALID_ACTIVATION_CODE)
-        if not user.active:
-            user.active = True
+                  message=INVALID_EMAIL_V10N_CODE)
+        if not user.email_verified:
+            user.email_verified = True
             db.session.commit()
             return {
-                'code': 200, 'status': 'success', 'message': 'User activated'
+                'code': 200, 'status': 'success', 'message': 'Email verified'
             }
         else:
             # TODO: 400 is not quite correct here
-            abort(400, status='error', code=400, message=USER_ALREADY_ACTIVE)
+            abort(
+                400, status='error', code=400, message=EMAIL_ALREADY_VERIFIED
+            )
 
 
 class UserAPI(Resource):

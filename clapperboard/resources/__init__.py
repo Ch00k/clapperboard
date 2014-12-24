@@ -17,7 +17,11 @@ from clapperboard.resources.movie import (
 from clapperboard.resources.showtime import ShowTimeAPI, ShowTimesListAPI
 from clapperboard.resources.theatre import TheatreAPI, TheatreListAPI
 from clapperboard.resources.technology import TechnologyAPI, TechnologyListAPI
-from clapperboard.resources.user import UserAPI, UserListAPI, UserActivateAPI
+from clapperboard.resources.user import (
+    UserAPI,
+    UserListAPI,
+    UserVerifyEmailAPI
+)
 from clapperboard.models.user import User
 
 
@@ -42,8 +46,9 @@ api.add_resource(MovieAPI, '/movies/<int:movie_id>')
 api.add_resource(MovieIMDBDataAPI, '/movies/<int:movie_id>/imdb-data')
 api.add_resource(MovieMetaDataAPI, '/movies/<int:movie_id>/metadata')
 api.add_resource(MovieShowTimesListAPI, '/movies/<int:movie_id>/showtimes')
-api.add_resource(MovieShowTimeAPI,
-                 '/movies/<int:movie_id>/showtimes/<int:showtime_id>')
+api.add_resource(
+    MovieShowTimeAPI, '/movies/<int:movie_id>/showtimes/<int:showtime_id>'
+)
 
 api.add_resource(ShowTimesListAPI, '/showtimes')
 api.add_resource(ShowTimeAPI, '/showtimes/<int:showtime_id>')
@@ -56,11 +61,17 @@ api.add_resource(TechnologyAPI, '/technologies/<int:technology_id>')
 
 anon_api.add_resource(UserListAPI, '/users')
 api.add_resource(UserAPI, '/users/<int:user_id>')
-anon_api.add_resource(UserActivateAPI, '/users/activate/<string:payload>')
+anon_api.add_resource(
+    UserVerifyEmailAPI, '/users/verify-email/<string:payload>'
+)
 
 
-def user_activate_url(payload):
-    return anon_api.url_for(UserActivateAPI, payload=payload, _external=True)
+def user_verify_email_url(payload):
+    return anon_api.url_for(
+        UserVerifyEmailAPI,
+        payload=payload,
+        _external=True
+    )
 
 
 json_settings['indent'] = 4
@@ -82,7 +93,7 @@ def webargs_error_handler(err):
 @jwt.authentication_handler
 def authenticate(username, password):
     u = User.query.filter_by(username=username).first()
-    if u and u.active and u.check_password(password):
+    if u and u.check_password(password):
         return u
 
 

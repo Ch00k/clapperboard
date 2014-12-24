@@ -19,6 +19,6 @@ def admin_required(f):
 
 def get_serializer():
     return URLSafeTimedSerializer(
-        secret_key=current_app.config['A8N_SECRET_KEY'],
-        salt=current_app.config['A8N_SALT']
+        secret_key=current_app.config['EMAIL_V10N_SECRET_KEY'],
+        salt=current_app.config['EMAIL_V10N_SALT']
     )

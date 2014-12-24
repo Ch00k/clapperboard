@@ -9,11 +9,11 @@ PARAM_NOT_IN_IMDB_DATA_OBJECT = ("Required parameter '{}' not "
 TYPE_MISMATCH = "Expected type {} for {}, got {}"
 
 USER_NOT_FOUND = "User {} not found"
-USER_ALREADY_ACTIVE = "User has already been activated"
 USER_NAME_EXISTS = "User with that username already exists"
 USER_EMAIL_EXISTS = "User with that email already exists"
 EMAIL_INVALID = "{} is not a valid email address"
 PASSWORD_INVALID = "Password length must be 8 or more characters"
 PARAM_NOT_IN_USER_OBJECT = "Required parameter '{}' not found in user object"
 
-INVALID_ACTIVATION_CODE = "Invalid activation code"
+INVALID_EMAIL_V10N_CODE = "Invalid verification code"
+EMAIL_ALREADY_VERIFIED = "Email has already been verified"

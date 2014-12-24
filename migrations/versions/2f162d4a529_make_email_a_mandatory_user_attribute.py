@@ -25,7 +25,7 @@ def upgrade():
         sa.Column('username', sa.String),
         sa.Column('email', sa.String),
         sa.Column('password', sa.String),
-        sa.Column('active', sa.Boolean)
+        sa.Column('email_verified', sa.Boolean)
     )
 
     connection.execute(
