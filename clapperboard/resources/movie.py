@@ -176,7 +176,6 @@ class MovieIMDBDataAPI(Resource):
             movie.imdb_data = imdb_data
         else:
             movie_imdb_data = get_movie_imdb_data(id=imdb_id)
-            movie_imdb_data['movie_id'] = movie.id
             movie.imdb_data = IMDBData(**movie_imdb_data)
         db.session.commit()
         return 200
