@@ -29,10 +29,9 @@ def upgrade():
         sa.Column('active', sa.Boolean)
     )
 
+    # Activate all existing users automatically
     connection.execute(
-        users_table.update().where(
-            users_table.c.id == 1
-        ).values(
+        users_table.update().values(
             active=True
         )
     )
