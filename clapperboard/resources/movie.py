@@ -106,7 +106,6 @@ class MovieMetaDataAPI(Resource):
     @admin_required
     @use_args(movie_metadata_create_json)
     def post(self, args, movie_id):
-        print(args)
         movie = Movie.query.get_or_abort(
             movie_id, error_msg=MOVIE_NOT_FOUND.format(movie_id)
         )
