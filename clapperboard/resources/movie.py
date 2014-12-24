@@ -16,19 +16,15 @@ from clapperboard.models.movie import Movie
 from clapperboard.models.movie_metadata import MovieMetadata
 from clapperboard.models.imdb_data import IMDBData
 from clapperboard.models.show_time import ShowTime
-
-
 from clapperboard.resources.common.errors import (
     MOVIE_NOT_FOUND,
     SHOWTIME_NOT_FOUND
 )
-
 from clapperboard.resources.common.arg_validators import (
     imdb_data_json_validator,
     movie_list_q_params_validator,
     movie_metadata_json_validator
 )
-
 from clapperboard.common.utils import get_movie_imdb_data
 
 
@@ -106,7 +102,6 @@ class MovieMetaDataAPI(Resource):
     @admin_required
     @use_args(movie_metadata_create_json)
     def post(self, args, movie_id):
-        print(args)
         movie = Movie.query.get_or_abort(
             movie_id, error_msg=MOVIE_NOT_FOUND.format(movie_id)
         )

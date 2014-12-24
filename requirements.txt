@@ -7,6 +7,7 @@ flask-jwt
 blinker
 marshmallow
 webargs
+itsdangerous
 requests
 PyMySQL
 xmltodict

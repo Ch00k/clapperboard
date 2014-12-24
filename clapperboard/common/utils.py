@@ -146,7 +146,7 @@ def get_movie_imdb_data(**kwargs):
 
     if 'title' in kwargs:
         try:
-            search_resuls = requests.get(
+            search_results = requests.get(
                 "{}/{}".format(
                     base_url,
                     search_query_string.format(kwargs['title'])
@@ -161,7 +161,7 @@ def get_movie_imdb_data(**kwargs):
                  .format(kwargs['title']))
             )
 
-        lh_doc = lh.fromstring(search_resuls.text)
+        lh_doc = lh.fromstring(search_results.text)
         movie_link = lh_doc.xpath(link_xpath)
         if movie_link:
             movie_link = movie_link[0]

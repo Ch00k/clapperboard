@@ -9,10 +9,11 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255), unique=True, nullable=False)
-    email = db.Column(db.String(255), unique=True)
+    email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column('password', db.String(255), nullable=False)
+    email_verified = db.Column(db.Boolean, default=False, nullable=False)
 
-    def __init__(self, username, password, email=None):
+    def __init__(self, username, email, password):
         self.username = username
         self.email = email
         self.hash_password(password)

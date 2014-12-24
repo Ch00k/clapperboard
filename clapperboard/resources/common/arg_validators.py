@@ -44,7 +44,7 @@ def movie_metadata_json_validator(val):
 
 
 def user_create_json_validator(val):
-    params = ('username', 'password')
+    params = ('username', 'email', 'password')
     msg = PARAM_NOT_IN_USER_OBJECT
     for param in params:
         if param not in val:
@@ -59,17 +59,15 @@ def user_create_json_validator(val):
             )
     if len(val['password']) < 8:
         _validation_error(PASSWORD_INVALID)
-    if 'email' in val:
-        if not _email_valid(val['email']):
-            _validation_error(EMAIL_INVALID.format(val['email']))
+    if not _email_valid(val['email']):
+        _validation_error(EMAIL_INVALID.format(val['email']))
 
 
 def user_edit_json_validator(val):
     if 'password' in val and len(val['password']) < 8:
         _validation_error(PASSWORD_INVALID)
-    if 'email' in val:
-        if not _email_valid(val['email']):
-            _validation_error(EMAIL_INVALID.format(val['email']))
+    if not _email_valid(val['email']):
+        _validation_error(EMAIL_INVALID.format(val['email']))
 
 
 def _email_valid(email):

@@ -31,6 +31,9 @@ cors_origins: "*"
 auth_token: "123qwe"
 secret_key: "123qwe"
 
+email_v10n_secret_key: "123qwe"
+email_v10n_salt: "123qwe"
+
 rely_on_last_modified: false
 
 env: "production"
@@ -39,3 +42,7 @@ rollbar_token: "123qwe"
 logrotate_config_dir: "/etc/logrotate.d"
 
 domain_name: "clpbrd.net"
+
+mailgun_domain: "clpbrd.net"
+mailgun_api_key: "123qwe"
+mailgun_from: "admin@clpbrd.net"

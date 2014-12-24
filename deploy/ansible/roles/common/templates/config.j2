@@ -1,5 +1,3 @@
-import os
-
 from celery.schedules import crontab
 from kombu import Exchange, Queue
 
@@ -8,8 +6,17 @@ ENVIRONMENT = '{{ env }}'
 SQLALCHEMY_DATABASE_URI = '{{ sqlalchemy_db_uri }}'
 CORS_HEADERS = 'Content-Type'
 CORS_RESOURCES = {r'/*': {'origins': '{{ cors_origins }}'}}
+# TODO: This is no longer used
 AUTH_TOKEN = '{{ auth_token }}'
+
 SECRET_KEY = '{{ secret_key }}'
+JWT_EXPIRATION_DELTA = 43200
+JWT_LEEWAY = 60
+
+EMAIL_V10N_SECRET_KEY = '{{ email_v10n_secret_key }}'
+EMAIL_V10N_SALT = '{{ email_v10n_salt }}'
+EMAIL_V10N_LINK_MAX_AGE = 43200  # 12 hours
+
 DEBUG = {{ debug }}
 SQLALCHEMY_ECHO = {{ sql_dedug }}
 
@@ -54,3 +61,7 @@ CELERY_ROUTES = {
 }
 
 ROLLBAR_TOKEN = os.environ.get('CLPBRD_ROLLBAR_TOKEN', '{{ rollbar_token }}')
+
+MAILGUN_DOMAIN = '{{ mailgun_domain }}'
+MAILGUN_API_KEY = '{{ mailgun_api_key }}'
+MAILGUN_DEFAULT_FROM = '{{ mailgun_from }}'

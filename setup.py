@@ -24,6 +24,7 @@ setup(
         'blinker',
         'webargs',
         'marshmallow',
+        'itsdangerous',
         'requests',
         'PyMySQL',
         'xmltodict',

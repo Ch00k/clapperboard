@@ -1,6 +1,6 @@
 from flask.ext.migrate import MigrateCommand
 
-from clapperboard import flask_app, celery_app
+from clapperboard import app
 from clapperboard import models
 
 from clapperboard.manager import manager
@@ -17,7 +17,7 @@ def fetch():
     Run celery task forcefully to populate the database.
     """
     write_movie_data.s(
-        not flask_app.config['RELY_ON_LAST_MODIFIED']
+        not app.config['RELY_ON_LAST_MODIFIED']
     ).apply_async(
         queue='fetch_pk_data',
         routing_key='fetch_pk_data'
@@ -26,7 +26,7 @@ def fetch():
 
 @manager.shell
 def _make_context():
-    return dict(app=flask_app, db=db, models=models, celery=celery_app)
+    return dict(app=app, db=db, models=models)
 
 
 def main():
