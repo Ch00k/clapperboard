@@ -60,7 +60,7 @@ CELERY_ROUTES = {
     }
 }
 
-ROLLBAR_TOKEN = os.environ.get('CLPBRD_ROLLBAR_TOKEN', '{{ rollbar_token }}')
+ROLLBAR_TOKEN = '{{ rollbar_token }}'
 
 MAILGUN_DOMAIN = '{{ mailgun_domain }}'
 MAILGUN_API_KEY = '{{ mailgun_api_key }}'
