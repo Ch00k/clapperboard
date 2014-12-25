@@ -63,6 +63,7 @@ class UserListAPI(Resource):
         s = get_serializer()
         payload = s.dumps(args['user']['email'])
 
+        # TODO: Change this to a module-level import
         from clapperboard.resources import user_verify_email_url
         email = dict(
             to=args['user']['email'],
@@ -94,21 +95,35 @@ class UserVerifyEmailAPI(Resource):
         except BadSignature:
             abort(404)
 
-        user = User.query.filter_by(email=user_email).first()
-        if not user:
-            abort(404, status='error', code=404,
-                  message=INVALID_EMAIL_V10N_CODE)
-        if not user.email_verified:
+        if '|' in user_email:
+            old, new = user_email.split('|')
+            user = User.query.filter_by(email=old).first()
+            if not user:
+                abort(
+                    404, status='error', code=404,
+                    message=INVALID_EMAIL_V10N_CODE
+                )
+            user.email = new
             user.email_verified = True
             db.session.commit()
-            return {
-                'code': 200, 'status': 'success', 'message': 'Email verified'
-            }
         else:
-            # TODO: 400 is not quite correct here
-            abort(
-                400, status='error', code=400, message=EMAIL_ALREADY_VERIFIED
-            )
+            user = User.query.filter_by(email=user_email).first()
+            if not user:
+                abort(404, status='error', code=404,
+                      message=INVALID_EMAIL_V10N_CODE)
+            if not user.email_verified:
+                user.email_verified = True
+                db.session.commit()
+            else:
+                # TODO: 400 is not quite correct here
+                abort(
+                    400, status='error', code=400,
+                    message=EMAIL_ALREADY_VERIFIED
+                )
+
+        return {
+            'code': 200, 'status': 'success', 'message': 'Email verified'
+        }
 
 
 class UserAPI(Resource):
@@ -138,7 +153,25 @@ class UserAPI(Resource):
                     ).first()):  # noqa
                 abort(400, status='error', code=400, message=USER_EMAIL_EXISTS)
             else:
-                user.email = args['user']['email']
+                s = get_serializer()
+                payload = s.dumps(
+                    '{}|{}'.format(
+                        user.email,
+                        args['user']['email']
+                    )
+                )
+                # TODO: Change this to a module-level import
+                from clapperboard.resources import user_verify_email_url
+                email = dict(
+                    to=args['user']['email'],
+                    subject='Clapperboard email verification',
+                    text=VERIFICATION_EMAIL_BODY.format(
+                        user_verify_email_url(payload=payload)
+                    )
+                )
+                email['h:X-Mailgun-Native-Send'] = True
+                # TODO: Make this async
+                mailer.send_email(**email)
         if 'password' in args['user']:
             user.password = user.hash_password(args['user']['password'])
         db.session.commit()
