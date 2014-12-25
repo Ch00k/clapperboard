@@ -20,7 +20,8 @@ from clapperboard.resources.technology import TechnologyAPI, TechnologyListAPI
 from clapperboard.resources.user import (
     UserAPI,
     UserListAPI,
-    UserVerifyEmailAPI
+    UserVerifyEmailAPI,
+    UserResendVerificationEmail
 )
 from clapperboard.models.user import User
 
@@ -63,6 +64,10 @@ anon_api.add_resource(UserListAPI, '/users')
 api.add_resource(UserAPI, '/users/<int:user_id>')
 anon_api.add_resource(
     UserVerifyEmailAPI, '/users/verify-email/<string:payload>'
+)
+api.add_resource(
+    UserResendVerificationEmail,
+    '/users/<int:user_id>/resend-email-verification'
 )
 
 
