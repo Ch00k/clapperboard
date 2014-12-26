@@ -33,7 +33,6 @@ user_create_json = {
     )
 }
 
-
 user_edit_json = {
     'user': Arg(
         dict, target='json', required=False, validate=user_edit_json_validator
@@ -78,6 +77,38 @@ class UserListAPI(Resource):
 
         res = self.user_schema.dump(user)
         return res.data
+
+
+class UserResendVerificationEmail(Resource):
+    def __init__(self):
+        super(UserResendVerificationEmail, self).__init__()
+
+    def post(self, user_id):
+        if current_user.id != user_id:
+            abort(401)
+        user = User.query.get_or_abort(
+            user_id, error_msg=USER_NOT_FOUND.format(user_id)
+        )
+        if user.email_verified:
+            # TODO: 400 is not quite correct here
+            abort(
+                400, status='error', code=400,
+                message=EMAIL_ALREADY_VERIFIED
+            )
+        s = get_serializer()
+        payload = s.dumps(user.email)
+        # TODO: Change this to a module-level import
+        from clapperboard.resources import user_verify_email_url
+        email = dict(
+            to=user.email,
+            subject='Clapperboard email verification',
+            text=VERIFICATION_EMAIL_BODY.format(
+                user_verify_email_url(payload=payload)
+            )
+        )
+        email['h:X-Mailgun-Native-Send'] = True
+        # TODO: Make this async
+        mailer.send_email(**email)
 
 
 class UserVerifyEmailAPI(Resource):
