@@ -1,4 +1,4 @@
-from flask import current_app
+from flask import current_app, make_response
 
 from flask.ext.restful import Resource, abort
 from flask.ext.jwt import current_user
@@ -109,6 +109,7 @@ class UserResendVerificationEmail(Resource):
         email['h:X-Mailgun-Native-Send'] = True
         # TODO: Make this async
         mailer.send_email(**email)
+        return make_response('', 202)
 
 
 class UserVerifyEmailAPI(Resource):
