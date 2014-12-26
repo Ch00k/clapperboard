@@ -5,22 +5,14 @@ from webargs.core import ValidationError, __type_map__, text_type
 from clapperboard.resources.common.errors import (
     TYPE_MISMATCH,
     EMAIL_INVALID,
+    USERNAME_INVALID,
     PASSWORD_INVALID,
-    PARAM_NOT_IN_USER_OBJECT,
-    PARAM_NOT_IN_IMDB_DATA_OBJECT
+    PARAM_NOT_IN_OBJECT
 )
 
 
 def imdb_data_json_validator(val):
-    if 'id' not in val:
-        _validation_error(PARAM_NOT_IN_IMDB_DATA_OBJECT.format('id'))
-    if not isinstance(val['id'], int):
-        _validation_error(
-            TYPE_MISMATCH.format(
-                __type_map__[int], 'id',
-                __type_map__[type(val['id'])]
-            )
-        )
+    _validate_params('imdb_data', val, id=int)
 
 
 def movie_list_q_params_validator(val):
@@ -44,19 +36,10 @@ def movie_metadata_json_validator(val):
 
 
 def user_create_json_validator(val):
-    params = ('username', 'email', 'password')
-    msg = PARAM_NOT_IN_USER_OBJECT
-    for param in params:
-        if param not in val:
-            _validation_error(msg.format(param))
-        if not isinstance(val[param], text_type):
-            _validation_error(
-                TYPE_MISMATCH.format(
-                    __type_map__[text_type],
-                    param,
-                    __type_map__[type(val[param])]
-                )
-            )
+    _validate_params('user', val, username=text_type, email=text_type,
+                     password=text_type)
+    if len(val['username']) < 3:
+        _validation_error(USERNAME_INVALID)
     if len(val['password']) < 8:
         _validation_error(PASSWORD_INVALID)
     if not _email_valid(val['email']):
@@ -76,3 +59,16 @@ def _email_valid(email):
 
 def _validation_error(msg):
     raise ValidationError(msg, status_code=400, message=msg)
+
+
+def _validate_params(obj_name, val, **params):
+    for param in params:
+        if param not in val:
+            _validation_error(PARAM_NOT_IN_OBJECT.format(param, obj_name))
+        if not isinstance(val[param], params[param]):
+            _validation_error(
+                TYPE_MISMATCH.format(
+                    __type_map__[params[param]], param,
+                    __type_map__[type(val[param])]
+                )
+            )
