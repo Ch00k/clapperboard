@@ -23,11 +23,23 @@ autorestart = true
 startsecs = 10
 
 [program:write_movie_data_worker]
-command = {{ base_dir }}/{{ venv_name }}/bin/celery -A clapperboard.workers worker -c 1 -l info
+command = {{ base_dir }}/{{ venv_name }}/bin/celery -A clapperboard.workers worker -Q fetch_pk_data -c 1 -l info
 environment = CLPBRD_CONFIG={{ base_dir }}/config.py
 numprocs = 1
 stdout_logfile = {{ write_movie_data_worker_log_file }}
 stderr_logfile = {{ write_movie_data_worker_log_file }}
+autostart = true
+autorestart = true
+startsecs = 10
+stopwaitsecs = 600
+killasgroup = true
+
+[program:send_email_worker]
+command = {{ base_dir }}/{{ venv_name }}/bin/celery -A clapperboard.workers worker -Q send_email -l info
+environment = CLPBRD_CONFIG={{ base_dir }}/config.py
+numprocs = 1
+stdout_logfile = {{ send_email_worker_log_file }}
+stderr_logfile = {{ send_email_worker_log_file }}
 autostart = true
 autorestart = true
 startsecs = 10

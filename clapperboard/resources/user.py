@@ -24,7 +24,7 @@ from clapperboard.resources.common.arg_validators import (
 from clapperboard.resources.common import get_serializer
 from clapperboard.models import db
 from clapperboard.models.user import User
-from clapperboard.mailer import mailer
+from clapperboard.workers.tasks import send_email
 
 
 user_create_json = {
@@ -61,20 +61,7 @@ class UserListAPI(Resource):
 
         s = get_serializer()
         payload = s.dumps(args['user']['email'])
-
-        # TODO: Change this to a module-level import
-        from clapperboard.resources import user_verify_email_url
-        email = dict(
-            to=args['user']['email'],
-            subject='Clapperboard email verification',
-            text=VERIFICATION_EMAIL_BODY.format(
-                user_verify_email_url(payload=payload)
-            )
-        )
-        email['h:X-Mailgun-Native-Send'] = True
-        # TODO: Make this async
-        mailer.send_email(**email)
-
+        _send_verification_email(args['user']['email'], payload)
         res = self.user_schema.dump(user)
         return res.data
 
@@ -97,18 +84,7 @@ class UserResendVerificationEmail(Resource):
             )
         s = get_serializer()
         payload = s.dumps(user.email)
-        # TODO: Change this to a module-level import
-        from clapperboard.resources import user_verify_email_url
-        email = dict(
-            to=user.email,
-            subject='Clapperboard email verification',
-            text=VERIFICATION_EMAIL_BODY.format(
-                user_verify_email_url(payload=payload)
-            )
-        )
-        email['h:X-Mailgun-Native-Send'] = True
-        # TODO: Make this async
-        mailer.send_email(**email)
+        _send_verification_email(user.email, payload)
         return make_response('', 202)
 
 
@@ -192,20 +168,23 @@ class UserAPI(Resource):
                         args['user']['email']
                     )
                 )
-                # TODO: Change this to a module-level import
-                from clapperboard.resources import user_verify_email_url
-                email = dict(
-                    to=args['user']['email'],
-                    subject='Clapperboard email verification',
-                    text=VERIFICATION_EMAIL_BODY.format(
-                        user_verify_email_url(payload=payload)
-                    )
-                )
-                email['h:X-Mailgun-Native-Send'] = True
-                # TODO: Make this async
-                mailer.send_email(**email)
+                _send_verification_email(args['user']['email'], payload)
         if 'password' in args['user']:
             user.password = user.hash_password(args['user']['password'])
         db.session.commit()
         res = self.user_schema.dump(user)
         return res.data
+
+
+def _send_verification_email(recepient, payload):
+    # TODO: Change this to a module-level import
+    from clapperboard.resources import user_verify_email_url
+    email = {
+        'to': recepient,
+        'subject': 'Clapperboard email verification',
+        'text': VERIFICATION_EMAIL_BODY.format(
+            user_verify_email_url(payload=payload)
+        ),
+        'h:X-Mailgun-Native-Send': True
+    }
+    send_email.s(**email).apply_async()
