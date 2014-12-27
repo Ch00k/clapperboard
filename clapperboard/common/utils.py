@@ -43,7 +43,7 @@ def get_pk_data(theatres, force):
         try:
             log.info("Getting data for {}".format(theatre['en_name']))
             resp = requests.get(url, cookies=cookies)
-        except requests.ConnectionError as error:
+        except requests.RequestException as error:
             log.error(error)
             # TODO: a temporary workaround for
             # https://github.com/Ch00k/clapperboard/issues/4
@@ -153,7 +153,7 @@ def get_movie_imdb_data(**kwargs):
                 ),
                 headers=headers
             )
-        except requests.ConnectionError as error:
+        except requests.RequestException as error:
             log.error(error)
             raise RuntimeError(
                 error,
@@ -184,7 +184,7 @@ def get_movie_imdb_data(**kwargs):
             movie_url.format(base_url, movie_id),
             headers=headers
         )
-    except requests.ConnectionError as error:
+    except requests.RequestException as error:
         log.error(error)
         raise RuntimeError(
             error,
