@@ -1,4 +1,4 @@
 rabbit: rabbitmq-server
 beat: celery -A clapperboard.workers beat -l info
-workers: celery -A clapperboard.workers worker -c 1 -l info
-
+fetch_worker: celery -A clapperboard.workers worker -Q fetch_pk_data -c 1 -l info
+email_worker: celery -A clapperboard.workers worker -Q send_email -l info

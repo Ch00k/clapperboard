@@ -10,7 +10,7 @@ from clapperboard.models.theatre import Theatre
 from clapperboard.models.technology import Technology
 from clapperboard.models.last_fetched import LastFetched
 from clapperboard.common.utils import get_pk_data, get_movie_imdb_data
-
+from clapperboard.mailer import mailer
 from clapperboard.workers import celery
 
 log = logging.getLogger(__name__)
@@ -183,3 +183,11 @@ def write_movie_data(force):
     log.info('Deleted showtimes: {}'.format(deleted_showtimes))
 
     _update_last_fetched(theatres_data)
+
+
+@celery.task
+def send_email(**kwargs):
+    email = kwargs
+    email['h:X-Mailgun-Native-Send'] = True
+    log.info('Sending email: {}'.format(email))
+    mailer.send_email(**email)

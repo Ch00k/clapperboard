@@ -50,15 +50,26 @@ CELERYBEAT_SCHEDULE = {
 }
 
 CELERY_QUEUES = (
-    Queue(name='fetch_pk_data',
-          exchange=Exchange('fetch_pk_data'),
-          routing_key='fetch_pk_data'),
+    Queue(
+        name='fetch_pk_data',
+        exchange=Exchange('fetch_pk_data'),
+        routing_key='fetch_pk_data'
+    ),
+    Queue(
+        name='send_email',
+        exchange=Exchange('send_email'),
+        routing_key='send_email'
+    ),
 )
 
 CELERY_ROUTES = {
     'clapperboard.workers.tasks.write_movie_data': {
         'queue': 'fetch_pk_data',
         'routing_key': 'fetch_pk_data'
+    },
+    'clapperboard.workers.tasks.send_email': {
+        'queue': 'send_email',
+        'routing_key': 'send_email'
     }
 }
 
