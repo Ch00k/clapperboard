@@ -187,6 +187,11 @@ def write_movie_data(force):
 
 @celery.task
 def send_email(**kwargs):
+    """
+    Send email via clapperboard mailer.
+
+    :return:
+    """
     email = kwargs
     email['h:X-Mailgun-Native-Send'] = True
     log.info('Sending email: {}'.format(email))
