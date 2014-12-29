@@ -1,10 +1,10 @@
 .. image:: https://travis-ci.org/Ch00k/clapperboard.svg?branch=develop
     :target: https://travis-ci.org/Ch00k/clapperboard
 
-Current functionality is very simple: get the list of currently running `Planeta Kino <http://planeta-kino.com.ua/lvov/>`_ movies and sort them by IMDB rating.
+Clapperboard exposes the movies data of `Planeta Kino <http://planeta-kino.com.ua/lvov/>`_ cinemas in Ukraine as a RESTful API. In addition to getting the data Planeta Kino has publicly it also gets movies information from external sources like IMDB etc.
 
 Built with `Flask <http://flask.pocoo.org/>`_, `Flask-RESTful <http://flask-restful.readthedocs.org/en/latest/>`_ `Flask-SQLAlchemy <https://pythonhosted.org/Flask-SQLAlchemy/>`_.
 
-Gets movies data from `showtimes XMLs <http://planeta-kino.com.ua/lvov/i/showtimes/>`_
+Gets movies data from `showtimes XMLs <http://planeta-kino.com.ua/i/showtimes/>`_
 
-Uses `IMDbPY <http://imdbpy.sourceforge.net/>`_ to get IMDB data for a movie.
+Uses `lxml <http://lxml.de/>`_ to scrape movies data from `IMDB <http://imdb.com/>`_
