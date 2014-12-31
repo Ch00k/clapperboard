@@ -34,12 +34,16 @@ def get_pk_data(theatres, force):
     showtimes = []
     seen_movies = set()
 
-    order_url_pattern = ("^https:\/\/cabinet.planeta-kino.com.ua"
-                         "\/hall\/\?show_id=(\d+)&.*$")
+    order_url_pattern = (
+        "^https:\/\/cabinet.planeta-kino.com.ua\/hall\/\?show_id=(\d+)&.*$"
+    )
 
     for theatre in theatres:
-        url = ("http://planeta-kino.com.ua/{}/showtimes/xml/"
-               .format(theatre['url_code']))
+        url = (
+            "http://planeta-kino.com.ua/{}/showtimes/xml/".format(
+                theatre['url_code']
+            )
+        )
         try:
             log.info("Getting data for {}".format(theatre['en_name']))
             resp = requests.get(url, cookies=cookies)
